@@ -26,6 +26,7 @@ const WorkerDashboard = () => {
   const [inspections, setInspections] = useState([
     { id: 1, date: "2024-09-22", meterId: "MTR123", status: "Pass", fault: "", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" },
     { id: 2, date: "2024-09-21", meterId: "MTR124", status: "Fail", fault: "Segment 3 Error", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" },
+    { id: 2, date: "2024-09-21", meterId: "MTR124", status: "Fail", fault: "Segment 3 Error", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" }
     // Add more inspection entries as needed
   ]);
 
@@ -124,12 +125,12 @@ const WorkerDashboard = () => {
       </div>
       <div className="min-h-screen bg-gray-900 flex flex-1 flex-col w-full ">
         <div className="grid grid-cols-12 gap-4 p-6 w-full">
-          <div className="col-span-12 w-full">
-            <div className="bg-gray-900 p-4 shadow-md rounded-md w-full">
-              <Stats />
-            </div>
-          </div>
           <div className="col-span-12 lg:col-span-8 space-y-4 w-full">
+            <div className="col-span-12 lg:col-span-8 w-full">
+              <div className="bg-gray-900 p-4 shadow-md rounded-md ">
+                <Stats />
+              </div>
+            </div>
             {/* Bar Graph */}
             <div className="bg-gray-900 p-4 shadow-md rounded-md w-full">
               <h2 className="text-lg font-semibold mb-2 bg-gray-800 p-3 rounded">Inspection Performance Over Time</h2>
@@ -183,14 +184,14 @@ const WorkerDashboard = () => {
               <div className="w-full">
                 <div className="flex flex-col mx-2 p-4">
                   {inspections.map((inspection) => (
-                    <div key={inspection.id} className="w-full p-2 mt-2 mb-2">
-                      <div className="bg-gray-800 p-4 rounded-lg shadow-lg w-full transform transition-transform hover:scale-105">
+                    <div key={inspection.id} className="w-full p-2">
+                      <div className="bg-gray-800 p-4 rounded-lg shadow-lg w-full transform transition-transform hover:scale-105 ">
                         <img
                           src={inspection.imageUrl}
                           alt={`Meter ${inspection.meterId}`}
                           className="w-full h-50 object-cover rounded-t-lg mb-4"
                         />
-                        <div className="bg-gray-800 p-6 rounded-lg shadow-lg transform transition-transform hover:scale-105">
+                        <div className="bg-gray-800 rounded-lg transform transition-transform hover:scale-105">
                           <div className="text-white mb-4 flex items-center justify-between">
                             <span className="font-semibold text-lg">Meter ID :</span>
                             <span
