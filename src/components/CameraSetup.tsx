@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 const CameraSetup: React.FC = () => {
     const [isCameraOn, setIsCameraOn] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
-
+    console.log(isCameraOn)
     const startCamera = async () => {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
