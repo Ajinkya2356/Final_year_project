@@ -38,10 +38,24 @@ const WorkerDashboard = () => {
       {
         label: "Inspections",
         data: [12, 19, 3, 5, 2, 3],
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: [
+          "rgba(54, 162, 235, 0.2)",  // Light Blue
+          "rgba(54, 162, 235, 0.4)",  // Medium Light Blue
+          "rgba(54, 162, 235, 0.6)",  // Medium Blue
+          "rgba(54, 162, 235, 0.8)",  // Medium Dark Blue
+          "rgba(54, 162, 235, 1.0)",  // Dark Blue
+          "rgba(54, 162, 235, 0.5)"   // Medium Blue
+        ],
+        borderColor: [
+          "rgba(54, 162, 235, 1)",    // Solid Blue
+          "rgba(54, 162, 235, 1)",    // Solid Blue
+          "rgba(54, 162, 235, 1)",    // Solid Blue
+          "rgba(54, 162, 235, 1)",    // Solid Blue
+          "rgba(54, 162, 235, 1)",    // Solid Blue
+          "rgba(54, 162, 235, 1)"     // Solid Blue
+        ],
         borderWidth: 1,
-      },
+      }
     ],
   };
 
@@ -61,7 +75,7 @@ const WorkerDashboard = () => {
     },
   };
 
-  const pieData = {
+  const pieData = [{
     labels: ["Pass", "Fail"],
     datasets: [
       {
@@ -72,7 +86,19 @@ const WorkerDashboard = () => {
         borderWidth: 1,
       },
     ],
-  };
+  }, {
+    labels: ["Check", "Uncheck"],
+    datasets: [
+      {
+        label: "Meter Status",
+        data: [10, 90],
+        backgroundColor: ["rgba(54, 162, 235, 0.2)", "rgba(255, 206, 86, 0.2)"],
+        borderColor: ["rgba(54, 162, 235, 1)", "rgba(255, 206, 86, 1)"],
+        borderWidth: 1,
+      }
+    ],
+
+  }];
 
   const lineData = {
     labels: ["January", "February", "March", "April", "May", "June"],
@@ -81,9 +107,9 @@ const WorkerDashboard = () => {
         label: "Real-time Trends",
         data: [12, 19, 3, 5, 2, 3],
         fill: false,
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
-      },
+        backgroundColor: "rgba(153, 102, 255, 0.2)", // Light Purple
+        borderColor: "rgba(153, 102, 255, 1)",       // Solid Purple
+    }
     ],
   };
 
@@ -143,8 +169,11 @@ const WorkerDashboard = () => {
             <div className="bg-gray-900 p-4 shadow-md rounded-md w-full">
               <h2 className="text-lg font-semibold mb-2 bg-gray-800 p-3 rounded">Meter Status Breakdown</h2>
               <div className="h-60 bg-gray-900 rounded flex justify-center mt-10">
-                <Pie data={pieData} />
-                <Pie data={pieData} />
+                {
+                  pieData.map((data, index) => (
+                    <Pie key={index} data={data} />
+                  ))
+                }
               </div>
             </div>
 
