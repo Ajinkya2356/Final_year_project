@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '../actions/userAction';
+import { useNavigate } from 'react-router-dom';
 interface LoginForm {
     worker_id: string;
     password: string;
 }
 const Login: React.FC = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [form, setForm] = useState<LoginForm>({ worker_id: '', password: '' });
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
-        window.location.href = '/dashboard';
+        dispatch(loginUser(form));
+        navigate('/dashboard');
     };
     return (
         <div className="flex min-h-screen flex-col justify-center items-center bg-gray-900">

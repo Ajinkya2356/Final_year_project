@@ -31,19 +31,6 @@ export const Stats = () => {
                         </select>
                     </div>
                     <div className="flex flex-col">
-                        <label htmlFor="status" className="text-white mb-2 text-lg">Status</label>
-                        <select
-                            id="status"
-                            value={status}
-                            onChange={(e) => setStatus(e.target.value)}
-                            className="p-2 rounded-md bg-gray-900 text-white"
-                        >
-                            <option value="">Select Status</option>
-                            <option value="checked">Checked</option>
-                            <option value="unchecked">Unchecked</option>
-                        </select>
-                    </div>
-                    <div className="flex flex-col">
                         <label htmlFor="dateRange" className="text-white mb-2 text-lg">Date Range</label>
                         <select
                             id="dateRange"
