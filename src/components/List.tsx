@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Multimeter {
     id: number;
@@ -24,6 +25,7 @@ const multimeters: Multimeter[] = [
 ];
 
 const List: React.FC = () => {
+    const navigate = useNavigate();
     const [search, setSearch] = useState('');
     const [data, setData] = useState(multimeters);
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,7 +41,10 @@ const List: React.FC = () => {
     return (
         <div className="flex flex-col gap-10 w-full p-10 flex-1">
             <div className="flex items-center gap-4 mb-6">
-                <button className='bg-gray-900'>
+                <button className='bg-gray-900 focus:outline-none'
+                    onClick={() => {
+                        navigate('/dashboard');
+                    }}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
                     </svg>
@@ -66,7 +71,11 @@ const List: React.FC = () => {
                             <button className="h-10 w-1/2 px-4 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition duration-300">
                                 Analytics
                             </button>
-                            <button className="h-10  w-1/2 px-4 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-300">
+                            <button
+                                className="h-10  w-1/2 px-4 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-300"
+                                onClick={() => {
+                                    navigate('/checkpoints')
+                                }}>
                                 Start
                             </button>
 
