@@ -10,7 +10,6 @@ export const Stats = () => {
         metersUnchecked: 25,
     };
     const [meterType, setMeterType] = useState('');
-    const [status, setStatus] = useState('');
     const [dateRange, setDateRange] = useState('');
     return (
         <>

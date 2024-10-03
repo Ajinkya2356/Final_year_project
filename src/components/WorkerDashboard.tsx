@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Stats } from "./WorkerStats";
-import { Bar, Pie, Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js';
 import { useNavigate } from "react-router-dom";
 
@@ -18,7 +17,7 @@ ChartJS.register(
 // Main Dashboard Component
 const WorkerDashboard = () => {
   const navigate = useNavigate();
-  
+
 
   const inspections = [
     { id: 1, date: "2024-09-22", meterId: "MTR123", status: "Pass", fault: "", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" },
@@ -54,7 +53,7 @@ const WorkerDashboard = () => {
 
   return (
     <>
-      
+
       <div className="min-h-screen bg-gray-900 flex flex-1 flex-col w-full ">
         <div className="grid grid-cols-12 gap-4 p-6 w-full">
           <div className="col-span-12 lg:col-span-8 space-y-4 w-full">
