@@ -8,6 +8,7 @@ import Checkpoints from './components/Checkpoints';
 import Navbar from './components/Navbar';
 import { Provider, useSelector } from 'react-redux';
 import store, { RootState } from './store';
+import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
@@ -21,6 +22,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/dashboard" element={<WorkerDashboard />} />
+            <Route path="/admindashboard" element={<AdminDashboard />} />
             <Route path="/list" element={<List />} />
             <Route path="/camera" element={<CameraSetup />} />
             <Route path="/checkpoints" element={<Checkpoints />} />
