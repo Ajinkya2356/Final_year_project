@@ -122,10 +122,10 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const [activeTab, setActiveTab] = useState<string>(tab);
   const [searchRegNo, setSearchRegNo] = useState<string>('');
   const [searchName, setSearchName] = useState<string>('');
-  const [isUpdating, setIsUpdating] = useState<boolean>(false); 
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  
+
   const [filterType, setFilterType] = useState('Name');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -142,7 +142,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const filteredWorkers = workers.filter(worker => {
     const lowerCaseName = worker.name.toLowerCase();
     const lowerCaseRegNo = worker.reg_no.toLowerCase();
-    
+
     if (filterType === 'Name') {
       return lowerCaseName.startsWith(searchName.toLowerCase());
     } else if (filterType === 'Reg. No.') {
@@ -156,9 +156,9 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
       } else if (endDate) {
         return workerDate === endDate;
       }
-      return true; 
+      return true;
     }
-    return true; 
+    return true;
   });
 
   const addWorker = () => {
@@ -190,7 +190,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     setWorkerToDelete(workers.find(w => w.reg_no === reg_no) || null);
     setIsDeleteConfirmOpen(true);
   };
-  
+
 
   const confirmDelete = () => {
     if (workerToDelete) {
@@ -226,8 +226,8 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     <div className="container" >
       <h1 className="text-2xl font-bold text-center mb-6">Worker Management</h1>
       <div className="flex justify-end mb-4">
-        <button 
-          className="bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-500" 
+        <button
+          className="bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-500"
           onClick={() => setActiveTab(prevTab => (prevTab === 'add' ? 'get' : 'add'))}
         >
           {activeTab === 'add' ? 'Show All' : 'Add'}
@@ -274,11 +274,11 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
 
       {activeTab === 'get' && (
         <div className="tab-content">
-          <div className="flex flex-row justify-around mb-4">
-            
+          <div className="flex flex-row justify-around mb-4 gap-5">
+
             {filterType !== 'Filter by Date' ? (
               <input
-                className="border border-gray-300 rounded p-2 mb-2 w-3/5"
+                className="border border-gray-300 rounded p-2 mb-2 w-full"
                 style={{ backgroundColor: '#1F2937', color: 'white' }}
                 name={filterType === 'Name' ? 'name' : 'reg_no'}
                 placeholder={`Filter by ${filterType}`}
@@ -287,12 +287,14 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               />
             ) : (
               <div className="flex flex-row w-3/5 justify-between">
+                <label htmlFor="startDate" className="text-white mb-1">Start Date (dd/mm/yyyy)</label>
                 <input
                   type="date"
                   className="border border-gray-300 rounded p-2 mb-2 w-2/5"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
+                <label htmlFor="endDate" className="text-white mb-1">End Date (dd/mm/yyyy)</label>
                 <input
                   type="date"
                   className="border border-gray-300 rounded p-2 mb-2 w-2/5 ml-2"
@@ -324,7 +326,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               {filteredWorkers.length > 0 ? (
                 filteredWorkers.map(worker => (
                   <tr key={worker._id}>
-                    <td className="border border-gray-300 px-4 py-2"><img src={worker.photo} alt={worker.name} className="h-10 w-10 rounded-full" /></td>
+                    <td className="border border-gray-300 px-4 py-2  flex justify-center"><img src={worker.photo} alt={worker.name} className="h-10 w-10 rounded-full" /></td>
                     <td className="border border-gray-300 px-4 py-2">{worker.name}</td>
                     <td className="border border-gray-300 px-4 py-2">{worker.reg_no}</td>
                     <td className="border border-gray-300 px-4 py-2">
@@ -361,7 +363,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               <button onClick={cancelDelete} className=" px-4 py-2 bg-gray-300 rounded">
                 No
               </button>
-              
+
             </div>
           </div>
         </div>
