@@ -1,9 +1,9 @@
 // src/reducers/index.ts
 import { combineReducers } from 'redux';
-import userReducer from './userReducer';
+import workerReducer from './userReducer';
 
 const rootReducer = combineReducers({
-    user: userReducer,
+    user: workerReducer,
     // Add other reducers here
 });
 
