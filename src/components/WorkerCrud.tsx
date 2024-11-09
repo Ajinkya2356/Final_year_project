@@ -1,5 +1,33 @@
 import React, { useState } from 'react';
 import image from '../assets/image.png';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { ThemeProvider } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles';
+
+const theme = createTheme({
+  components: {
+    MuiDataGrid: {
+      styleOverrides: {
+        root: {
+          '& .MuiDataGrid-cell': {
+            color: 'white', // Customize cell text color
+            backgroundColor: '#1F2937', // Customize cell background color
+            borderColor: "white",
+            borderWidth: 0.5,
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            backgroundColor: '#111828', // Customize column header background color
+            color: 'black', // Customize column header text color
+          },
+          '& .MuiDataGrid-footerContainer': {
+            backgroundColor: '#1F2937', // Customize footer background color
+            color: 'white', // Customize footer text color
+          },
+        },
+      },
+    },
+  },
+});
 
 interface Worker {
   _id: string;
@@ -122,14 +150,24 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const [activeTab, setActiveTab] = useState<string>(tab);
   const [searchRegNo, setSearchRegNo] = useState<string>('');
   const [searchName, setSearchName] = useState<string>('');
-  const [isUpdating, setIsUpdating] = useState<boolean>(false); 
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  
+
   const [filterType, setFilterType] = useState('Name');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [workerToDelete, setWorkerToDelete] = useState<Worker | null>(null);
+
+  /* const [loading, setLoading] = useState(false); */
+  const [pagination, setPagination] = useState({ page: 1, limit: 10 });
+
+  const onChangePage = (page: number) => {
+    setPagination({ ...pagination, page });
+  }
+  const onChangeLimit = (limit: number) => {
+    setPagination({ ...pagination, limit });
+  }
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterType(e.target.value as 'Name' | 'Reg. No.' | 'Filter by Date');
@@ -142,7 +180,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const filteredWorkers = workers.filter(worker => {
     const lowerCaseName = worker.name.toLowerCase();
     const lowerCaseRegNo = worker.reg_no.toLowerCase();
-    
+
     if (filterType === 'Name') {
       return lowerCaseName.startsWith(searchName.toLowerCase());
     } else if (filterType === 'Reg. No.') {
@@ -156,9 +194,9 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
       } else if (endDate) {
         return workerDate === endDate;
       }
-      return true; 
+      return true;
     }
-    return true; 
+    return true;
   });
 
   const addWorker = () => {
@@ -190,7 +228,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     setWorkerToDelete(workers.find(w => w.reg_no === reg_no) || null);
     setIsDeleteConfirmOpen(true);
   };
-  
+
 
   const confirmDelete = () => {
     if (workerToDelete) {
@@ -222,12 +260,54 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     });
   };
 
+  const columns: GridColDef[] = [
+    {
+      field: 'photo',
+      headerName: 'Photo',
+      width: 100,
+      renderCell: (params) => (
+        <div className="flex justify-center items-center w-full h-full">
+          <img src={params.value} alt={params.row.name} className="h-10 w-10 rounded-full" />
+        </div>
+      ),
+      headerAlign: 'center',
+      resizable: false,
+    },
+    { field: 'name', headerName: 'Name', flex: 1, resizable: false, headerAlign: 'center', },
+    { field: 'reg_no', headerName: 'Registration No', flex: 1, resizable: false, headerAlign: 'center', },
+    {
+      field: 'actions',
+      flex: 1,
+      headerName: 'Actions',
+      headerAlign: 'center',
+      resizable: false,
+      renderCell: (params) => (
+        <div className="flex space-x-2 justify-between items-center h-full">
+          <button
+            className="bg-blue-600 text-white text-sm my-4 py-1 px-3 rounded hover:bg-blue-700 transition duration-300 ease-in-out h-7 w-1/2"
+            onClick={() => {
+              setFormData(params.row);
+              setIsUpdating(true);
+            }}
+          > Update
+          </button>
+          <button
+            className="bg-red-600 text-white text-sm my-4 py-1 px-3 rounded hover:bg-red-700 transition duration-300 ease-in-out h-7 w-1/2"
+            onClick={() => handleDeleteWorker(params.row.reg_no)}
+          > Delete
+          </button>
+
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="container" >
       <h1 className="text-2xl font-bold text-center mb-6">Worker Management</h1>
       <div className="flex justify-end mb-4">
-        <button 
-          className="bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-500" 
+        <button
+          className="bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-500"
           onClick={() => setActiveTab(prevTab => (prevTab === 'add' ? 'get' : 'add'))}
         >
           {activeTab === 'add' ? 'Show All' : 'Add'}
@@ -274,11 +354,11 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
 
       {activeTab === 'get' && (
         <div className="tab-content">
-          <div className="flex flex-row justify-around mb-4">
-            
+          <div className="flex flex-row justify-around mb-4 gap-5">
+
             {filterType !== 'Filter by Date' ? (
               <input
-                className="border border-gray-300 rounded p-2 mb-2 w-3/5"
+                className="border border-gray-300 rounded p-2 mb-2 w-full"
                 style={{ backgroundColor: '#1F2937', color: 'white' }}
                 name={filterType === 'Name' ? 'name' : 'reg_no'}
                 placeholder={`Filter by ${filterType}`}
@@ -287,12 +367,14 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               />
             ) : (
               <div className="flex flex-row w-3/5 justify-between">
+                <label htmlFor="startDate" className="text-white mb-1">Start Date (dd/mm/yyyy)</label>
                 <input
                   type="date"
                   className="border border-gray-300 rounded p-2 mb-2 w-2/5"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
+                <label htmlFor="endDate" className="text-white mb-1">End Date (dd/mm/yyyy)</label>
                 <input
                   type="date"
                   className="border border-gray-300 rounded p-2 mb-2 w-2/5 ml-2"
@@ -309,44 +391,25 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               </select>
             </div>
           </div>
-
-          <table className="min-w-full border-collapse border border-gray-300">
-            <thead>
-              <tr>
-                <th className="border border-gray-300 px-4 py-2">Photo</th>
-                <th className="border border-gray-300 px-4 py-2">Name</th>
-                <th className="border border-gray-300 px-4 py-2">Registration No</th>
-                {/* <th className="border border-gray-300 px-4 py-2">Actions</th>
-                <th className="border border-gray-300 px-4 py-2">Actions</th> */}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredWorkers.length > 0 ? (
-                filteredWorkers.map(worker => (
-                  <tr key={worker._id}>
-                    <td className="border border-gray-300 px-4 py-2"><img src={worker.photo} alt={worker.name} className="h-10 w-10 rounded-full" /></td>
-                    <td className="border border-gray-300 px-4 py-2">{worker.name}</td>
-                    <td className="border border-gray-300 px-4 py-2">{worker.reg_no}</td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <button className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-500" onClick={() => {
-                        setFormData(worker);
-                        setIsUpdating(true);
-                      }}>Update</button>
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <button className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-500" onClick={() => handleDeleteWorker(worker.reg_no)}>Delete</button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="border border-gray-300 px-4 py-2 text-center text-gray-500">
-                    No workers found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <ThemeProvider theme={theme}>
+            <DataGrid
+              rows={filteredWorkers}
+              columns={columns}
+              getRowId={(row) => row._id}
+              initialState={{
+                pagination: {
+                  paginationModel: { pageSize: pagination.limit, page: pagination.page },
+                },
+              }}
+              rowCount={10}
+              onPaginationModelChange={(params) => {
+                onChangePage(params.page);
+                onChangeLimit(params.pageSize);
+              }}
+              paginationMode='server'
+              pagination
+            />
+          </ThemeProvider>
         </div>
       )}
 
@@ -361,7 +424,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               <button onClick={cancelDelete} className=" px-4 py-2 bg-gray-300 rounded">
                 No
               </button>
-              
+
             </div>
           </div>
         </div>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import WorkerCrud from './WorkerCrud';
 import MeterCrud from './MeterCrud';
-import AdminAnalysis from './AdminAnalysis';
 import AdminSideBar from './AdminSideBar';
 
 const AdminDashboard: React.FC = () => {
@@ -13,8 +12,6 @@ const AdminDashboard: React.FC = () => {
         return <WorkerCrud tab={'get'} />;
       case 'MeterCrud':
         return <MeterCrud />;
-      case 'AdminAnalysis':
-        return <AdminAnalysis />;
       case 'WorkerCrud_add':
         return <WorkerCrud tab={'add'} />;
       default:

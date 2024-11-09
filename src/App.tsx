@@ -5,29 +5,26 @@ import WorkerDashboard from './components/WorkerDashboard';
 import List from './components/List';
 import CameraSetup from './components/CameraSetup';
 import Checkpoints from './components/Checkpoints';
-import Navbar from './components/Navbar';
-import { Provider, useSelector } from 'react-redux';
-import store, { RootState } from './store';
+import { Provider } from 'react-redux';
+import store from './store';
 import AdminDashboard from './components/AdminDashboard';
+import Layout from './components/Layout';
+import RequireAuth from './components/RequireAuth';
 
 function App() {
-  const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
   return (
     <Provider store={store}>
       <Router>
-        <div className="min-h-screen w-full flex flex-col items-center justify-center">
-          {
-            isAuthenticated && <Navbar />
-          }
-          <Routes>
-            <Route path="/" element={<Login />} />
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route element={<RequireAuth><Layout /></RequireAuth>}>
             <Route path="/dashboard" element={<WorkerDashboard />} />
-            <Route path="/admindashboard" element={<AdminDashboard />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/list" element={<List />} />
             <Route path="/camera" element={<CameraSetup />} />
             <Route path="/checkpoints" element={<Checkpoints />} />
-          </Routes>
-        </div>
+          </Route>
+        </Routes>
       </Router>
     </Provider>
   );
