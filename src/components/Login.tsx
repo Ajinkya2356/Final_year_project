@@ -1,20 +1,29 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { loginUser } from '../actions/userAction';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser } from '../slices/userSlice';
 import { useNavigate } from 'react-router-dom';
 interface LoginForm {
-    worker_id: string;
+    reg_no: string;
     password: string;
 }
 const Login: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    const [form, setForm] = useState<LoginForm>({ worker_id: '', password: '' });
+    const [form, setForm] = useState<LoginForm>({ reg_no: '', password: '' });
+    const { isAuthenticated, userData, loading, error } = useSelector((state: any) => state.user);
+    useEffect(() => {
+        if (isAuthenticated) {
+            if (userData.user_role === 'admin') {
+                navigate('/admin/dashboard');
+            } else if (userData.user_role === 'worker') {
+                navigate('/dashboard');
+            }
+        }
+    }, [isAuthenticated, userData, navigate]);
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         dispatch(loginUser(form));
-        navigate('/dashboard');
     };
     return (
         <div className="flex min-h-screen flex-col justify-center items-center bg-gray-900">
@@ -32,7 +41,7 @@ const Login: React.FC = () => {
                         </label>
                         <div className="mt-2">
                             <input
-                                onChange={(e) => setForm({ ...form, worker_id: e.target.value })}
+                                onChange={(e) => setForm({ ...form, reg_no: e.target.value })}
                                 id="worker_id"
                                 name="worker_id"
                                 type="text"
