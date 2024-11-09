@@ -1,7 +1,9 @@
-import { useRef } from "react";
-import { Stats } from "./WorkerStats";
+import { useEffect, useRef } from "react";
+import Stats from "./WorkerStats";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js';
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getMyInspections } from "../slices/inspectionSlice";
 
 ChartJS.register(
   CategoryScale,
@@ -16,18 +18,14 @@ ChartJS.register(
 );
 // Main Dashboard Component
 const WorkerDashboard = () => {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getMyInspections());
+  }, [dispatch])
   const navigate = useNavigate();
 
 
-  const inspections = [
-    { id: 1, date: "2024-09-22", meterId: "MTR123", status: "Pass", fault: "", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" },
-    { id: 2, date: "2024-09-21", meterId: "MTR124", status: "Fail", fault: "Segment 3 Error", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" },
-    { id: 2, date: "2024-09-21", meterId: "MTR124", status: "Fail", fault: "Segment 3 Error", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" },
-    { id: 2, date: "2024-09-21", meterId: "MTR124", status: "Fail", fault: "Segment 3 Error", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" },
-    { id: 2, date: "2024-09-21", meterId: "MTR124", status: "Fail", fault: "Segment 3 Error", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" },
-    { id: 2, date: "2024-09-21", meterId: "MTR124", status: "Fail", fault: "Segment 3 Error", imageUrl: "https://rishabh.co.in/uploads/product/RISH_LM_1340_(1).png" }
-    // Add more inspection entries as needed
-  ];
+  const { inspections, inspectionsLoading } = useSelector((state: any) => state.inspection);
 
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -48,7 +46,14 @@ const WorkerDashboard = () => {
       scrollContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' });
     }
   };
-
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
 
 
   return (
@@ -74,38 +79,38 @@ const WorkerDashboard = () => {
                 </button>
                 <div ref={scrollContainerRef} className="flex mx-10 p-4 
                 overflow-x-hidden overflow-x-auto whitespace-nowrap ">
-                  {inspections.map((inspection) => (
+                  {inspectionsLoading ? <h1>Loading...</h1> : inspections.map((inspection) => (
                     <div key={inspection.id} className="w-56 mx-4 p-2">
                       <div className="bg-gray-800 p-4 rounded-lg shadow-lg w-full transform transition-transform hover:scale-105 ">
                         <img
-                          src={inspection.imageUrl}
-                          alt={`Meter ${inspection.meterId}`}
+                          src={inspection?.meter_details?.photo}
+                          alt={`Meter ${inspection?.meter_details?.serial_no}`}
                           className="w-full h-50 object-cover rounded-t-lg mb-4"
                         />
                         <div className="bg-gray-800 rounded-lg transform transition-transform hover:scale-105">
                           <div className="text-white mb-4 flex items-center justify-between">
-                            <span className="font-semibold text-lg">Meter ID :</span>
+                            <span className="font-semibold text-sm">Serial No. : </span>
                             <span
-                              className="font-semibold text-lg"
+                              className="font-semibold text-sm"
                             >
-                              {inspection.meterId}
+                              {inspection?.meter_details?.serial_no}
                             </span>
                           </div>
                           <div className="text-white mb-4 flex items-center justify-between">
-                            <span className="font-semibold text-lg">Date :</span>
+                            <span className="font-semibold text-sm">Date:</span>
                             <span
-                              className="font-semibold text-lg"
+                              className="font-semibold text-sm"
                             >
-                              {inspection.date}
+                              {formatDate(inspection?.date)}
                             </span>
                           </div>
                           <div className="text-white mb-4 flex items-center justify-between">
-                            <span className="font-semibold text-lg">Status :</span>
+                            <span className="font-semibold text-sm">Status :</span>
                             <span
-                              className={`ml-2 px-3 py-1 rounded-full font-bold text-lg ${inspection.status === "Pass" ? "text-green-400" : "text-red-400"
+                              className={`ml-2 px-3 py-1 rounded-full font-bold text-sm ${inspection?.status === "Pass" ? "text-green-400" : "text-red-400"
                                 }`}
                             >
-                              {inspection.status}
+                              {inspection?.status}
                             </span>
                           </div>
                         </div>
@@ -128,7 +133,7 @@ const WorkerDashboard = () => {
           <div className="col-span-12 lg:col-span-4 space-y-4 w-full">
             <div className="bg-gray-900 p-4 shadow-md rounded-md w-full">
               <h2 className="text-lg font-semibold mb-2">Live Camera Feed</h2>
-              <div className="h-48 bg-gray-300 rounded flex items-center justify-center">
+              <div className="h-96 bg-gray-300 rounded flex items-center justify-center">
 
                 <span className="text-gray-600">Live Feed Placeholder</span>
 
