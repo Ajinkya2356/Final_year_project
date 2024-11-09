@@ -14,9 +14,9 @@ const Login: React.FC = () => {
     const { isAuthenticated, userData, loading, error } = useSelector((state: any) => state.user);
     useEffect(() => {
         if (isAuthenticated) {
-            if (userData.user_role === 'admin') {
+            if (userData?.user_role === 'admin') {
                 navigate('/admin/dashboard');
-            } else if (userData.user_role === 'worker') {
+            } else if (userData?.user_role === 'worker') {
                 navigate('/dashboard');
             }
         }

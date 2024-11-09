@@ -1,6 +1,7 @@
 // src/reducers/userSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { BASE_URL } from '../constant';
 
 interface UserState {
@@ -26,6 +27,7 @@ export const loginUser = createAsyncThunk(
         headers: {
           'Content-Type': 'application/json',
         },
+        withCredentials: true,
       });
 
       return response.data;
@@ -39,6 +41,45 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+
+export const loadUser = createAsyncThunk(
+  'user/loadUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Check if token is in localStorage first
+      const token = localStorage.getItem('access_token');
+
+      // Define request options
+      let requestOptions = {
+        url: `${BASE_URL}/me`,
+        method: 'GET',
+        withCredentials: true, // Allows HTTP-only cookies to be sent automatically
+      };
+
+      // If token exists in localStorage, add Authorization header
+      if (token) {
+        requestOptions.headers = { Authorization: `Bearer ${token}` };
+      } else {
+        console.log('Using cookies for authentication');
+      }
+
+      // Make the API request
+      const response = await axios(requestOptions);
+
+      // Return user data if request succeeds
+      return response.data;
+    } catch (error) {
+      // Handle both network and server errors gracefully
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data.message);
+      } else {
+        return rejectWithValue(error.message);
+      }
+    }
+  }
+);
+
+
 const userSlice = createSlice({
   name: 'user',
   initialState,
@@ -46,14 +87,6 @@ const userSlice = createSlice({
     logoutUser(state) {
       state.isAuthenticated = false;
       state.userData = null;
-      localStorage.removeItem('access to');
-    },
-    initializeAuthState(state) {
-      const storedUserData = localStorage.getItem('access token');
-      if (storedUserData) {
-        state.isAuthenticated = true;
-        state.userData = JSON.parse(storedUserData);
-      }
     },
   },
   extraReducers: (builder) => {
@@ -66,14 +99,26 @@ const userSlice = createSlice({
         state.isAuthenticated = true;
         state.userData = action.payload;
         state.loading = false;
-        localStorage.setItem('userData', JSON.stringify(action.payload));
       })
       .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(loadUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loadUser.fulfilled, (state, action) => {
+        state.isAuthenticated = true;
+        state.userData = action.payload;
+        state.loading = false;
+      })
+      .addCase(loadUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
   },
 });
 
-export const { logoutUser, initializeAuthState } = userSlice.actions;
+export const { logoutUser } = userSlice.actions;
 export default userSlice.reducer;

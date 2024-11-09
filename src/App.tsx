@@ -5,12 +5,20 @@ import WorkerDashboard from './components/WorkerDashboard';
 import List from './components/List';
 import CameraSetup from './components/CameraSetup';
 import Checkpoints from './components/Checkpoints';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import store from './store';
 import AdminDashboard from './components/AdminDashboard';
 import Layout from './components/Layout';
+import { useEffect } from 'react';
+import { loadUser } from './slices/userSlice';
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(loadUser());
+  }, [dispatch]);
+
   return (
     <Provider store={store}>
       <Router>
