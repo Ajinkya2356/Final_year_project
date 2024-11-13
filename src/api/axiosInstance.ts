@@ -3,6 +3,7 @@ import axios from 'axios';
 import { BASE_URL } from '../constant';
 import store from '../store';
 import { logoutUser } from '../slices/userSlice';
+import { isRejected } from '@reduxjs/toolkit';
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -11,6 +12,7 @@ const axiosInstance = axios.create({
 
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
+let isLoggedOut = false;
 
 function onRefreshed(token: string) {
   refreshSubscribers.forEach((callback) => callback(token));
@@ -43,8 +45,13 @@ axiosInstance.interceptors.response.use(
       if (isRefreshing) {
         return new Promise((resolve) => {
           addRefreshSubscriber((token: string) => {
-            originalRequest.headers['Authorization'] = `Bearer ${token}`;
-            resolve(axiosInstance(originalRequest));
+            if (isLoggedOut) {
+              isRejected(new Error('User logged out'))
+            }
+            else {
+              originalRequest.headers['Authorization'] = `Bearer ${token}`;
+              resolve(axiosInstance(originalRequest));
+            }
           });
         });
       }
@@ -70,12 +77,12 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         console.log("Error", refreshError)
         isRefreshing = false;
+        isLoggedOut = true;
         store.dispatch(logoutUser());
         window.location.href = '/';
         return Promise.reject(refreshError);
       }
     }
-
     return Promise.reject(error);
   }
 );

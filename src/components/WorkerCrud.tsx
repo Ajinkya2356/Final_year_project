@@ -3,7 +3,8 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchWorkers, addWorker as addWorkerAction } from '../slices/adminSlice';
+import { fetchWorkers, addWorker as addWorkerAction, deleteWorker, updateWorker } from '../slices/adminSlice';
+
 
 const theme = createTheme({
   components: {
@@ -59,8 +60,8 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const [searchName, setSearchName] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<any>(null);
   const [filterType, setFilterType] = useState('Name');
-  const [workerToDelete, setWorkerToDelete] = useState<Worker | null>(null);
   const [pagination, setPagination] = useState({ page: 1, limit: 10 });
 
   useEffect(() => {
@@ -88,31 +89,27 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     resetForm();
   };
 
-  const updateWorker = () => {
-    const updatedWorkers = workers.map(worker =>
-      worker._id === formData._id ? { ...worker, ...formData, updated_at: new Date().toISOString() } : worker
-    );
-    setWorkers(updatedWorkers);
+  const handleUpdateWorker = () => {
+    dispatch(updateWorker({ id: selectedRow, worker: formData }));
+    setSelectedRow(null);
     setIsUpdating(false);
     resetForm();
   };
 
-  const handleDeleteWorker = (reg_no: string) => {
-    setWorkerToDelete(workers.find(w => w.reg_no === reg_no) || null);
+  const handleDeleteWorker = (_id: string) => {
     setIsDeleteConfirmOpen(true);
+    setSelectedRow(_id);
   };
 
   const confirmDelete = () => {
-    if (workerToDelete) {
-      setWorkers(workers.filter(w => w.reg_no !== workerToDelete.reg_no));
-    }
+    dispatch(deleteWorker(selectedRow));
     setIsDeleteConfirmOpen(false);
-    setWorkerToDelete(null);
+    setSelectedRow(null)
   };
 
   const cancelDelete = () => {
     setIsDeleteConfirmOpen(false);
-    setWorkerToDelete(null);
+    setSelectedRow(null)
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,12 +158,17 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
             onClick={() => {
               setFormData(params.row);
               setIsUpdating(true);
+              setSelectedRow(params.row.id);
             }}
           > Update
           </button>
           <button
             className="bg-red-600 text-white text-sm my-4 py-1 px-3 rounded hover:bg-red-700 transition duration-300 ease-in-out h-7 w-1/2"
-            onClick={() => handleDeleteWorker(params.row.reg_no)}
+            onClick={() => {
+              handleDeleteWorker(params.row.id);
+
+            }
+            }
           > Delete
           </button>
 
@@ -219,8 +221,11 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="name" placeholder="Name" value={formData.name} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="reg_no" placeholder="Registration No" value={formData.reg_no} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} required />
-            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="photo" placeholder="Photo URL" value={formData.photo} onChange={handleInputChange} required />
-            <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500" onClick={updateWorker}>Update Worker</button>
+
+            <span className='flex justify-center m-3'><img src={formData.photo} alt={`user {formData.reg_no}`} height={100} width={150} /></span>
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="photo" type="file" accept="image/*" onChange={handleInputChange} required />
+
+            <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500" onClick={handleUpdateWorker}>Update Worker</button>
           </div>
         </div>
       )}

@@ -62,6 +62,43 @@ export const addWorker = createAsyncThunk('admin/addWorker', async (worker, { re
     }
 });
 
+export const updateWorker = createAsyncThunk('admin/updateWorker', async ({ id, worker }, { rejectWithValue }) => {
+    try {
+        const data = new FormData();
+        data.append('name', worker.name);
+        data.append('reg_no', worker.reg_no);
+        data.append('password', worker.password);
+        if (worker.photo) {
+            data.append('photo', worker.photo);
+        }
+        const response = await axiosInstance.put(`/worker/${id}`, data, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        if (error.response && error.response.data) {
+            return rejectWithValue(error.response.data.message);
+        } else {
+            return rejectWithValue(error.message);
+        }
+    }
+});
+
+export const deleteWorker = createAsyncThunk('admin/deleteWorker', async (id, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.delete(`/worker/${id}`)
+        return response.data;
+    } catch (error: any) {
+        if (error.response && error.response.data) {
+            return rejectWithValue(error.response.data.message);
+        } else {
+            return rejectWithValue(error.message);
+        }
+    }
+});
+
 export const fetchMeters = createAsyncThunk('admin/fetchMeters', async () => {
     const response = await axios.get('/api/meters');
     return response.data;
@@ -111,50 +148,28 @@ const adminSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-            .addCase(fetchMeters.pending, (state) => {
+            .addCase(deleteWorker.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
-            .addCase(fetchMeters.fulfilled, (state, action) => {
+            .addCase(deleteWorker.fulfilled, (state, action: PayloadAction<any>) => {
                 state.loading = false;
-                state.meters = action.payload;
             })
-            .addCase(fetchMeters.rejected, (state, action) => {
+            .addCase(deleteWorker.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
-                state.error = action.error.message || 'Failed to fetch meters';
+                state.error = action.payload;
             })
-            .addCase(fetchInspections.pending, (state) => {
+            .addCase(updateWorker.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
-            .addCase(fetchInspections.fulfilled, (state, action) => {
+            .addCase(updateWorker.fulfilled, (state, action: PayloadAction<any>) => {
                 state.loading = false;
-                state.inspections = action.payload;
             })
-            .addCase(fetchInspections.rejected, (state, action) => {
+            .addCase(updateWorker.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
-                state.error = action.error.message || 'Failed to fetch inspections';
+                state.error = action.payload;
             })
-            .addCase(fetchRoutines.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(fetchRoutines.fulfilled, (state, action) => {
-                state.loading = false;
-                state.routines = action.payload;
-            })
-            .addCase(fetchRoutines.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.error.message || 'Failed to fetch routines';
-            })
-            .addCase(removeInspection.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(removeInspection.fulfilled, (state, action) => {
-                state.loading = false;
-                state.inspections = state.inspections.filter(inspection => inspection.id !== action.payload);
-            })
-            .addCase(removeInspection.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.error.message || 'Failed to remove inspection';
-            });
     },
 });
 
