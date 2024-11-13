@@ -16,8 +16,9 @@ function App() {
     <Provider store={store}>
       <Router>
         <Routes>
-          <Route path="/" element={<Login />} />
+
           <Route element={<RequireAuth><Layout /></RequireAuth>}>
+            <Route path="/" element={<Login />} />
             <Route path="/dashboard" element={<WorkerDashboard />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/list" element={<List />} />

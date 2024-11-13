@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import image from '../assets/image.png';
+import React, { useEffect, useState } from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchWorkers, addWorker as addWorkerAction } from '../slices/adminSlice';
 
 const theme = createTheme({
   components: {
@@ -30,13 +31,10 @@ const theme = createTheme({
 });
 
 interface Worker {
-  _id: string;
   name: string;
   reg_no: string;
   password: string;
-  photo: string;
-  created_at: string;
-  updated_at: string;
+  photo: File | null;
 }
 
 interface WorkerCrudProps {
@@ -44,107 +42,16 @@ interface WorkerCrudProps {
 }
 
 const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
-  const [workers, setWorkers] = useState<Worker[]>([
-    {
-      _id: '1',
-      name: 'Aarav Singh',
-      reg_no: 'REG001',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2023-02-15').toISOString(),
-      updated_at: new Date('2023-02-15').toISOString(),
-    },
-    {
-      _id: '2',
-      name: 'Vivaan Patel',
-      reg_no: 'REG002',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2023-05-10').toISOString(),
-      updated_at: new Date('2023-05-10').toISOString(),
-    },
-    {
-      _id: '3',
-      name: 'Aditya Sharma',
-      reg_no: 'REG003',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2023-08-20').toISOString(),
-      updated_at: new Date('2023-08-20').toISOString(),
-    },
-    {
-      _id: '4',
-      name: 'Vihaan Gupta',
-      reg_no: 'REG004',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2024-01-05').toISOString(),
-      updated_at: new Date('2024-01-05').toISOString(),
-    },
-    {
-      _id: '5',
-      name: 'Reyansh Verma',
-      reg_no: 'REG005',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2024-03-18').toISOString(),
-      updated_at: new Date('2024-03-18').toISOString(),
-    },
-    {
-      _id: '6',
-      name: 'Ishaan Rao',
-      reg_no: 'REG006',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2024-04-22').toISOString(),
-      updated_at: new Date('2024-04-22').toISOString(),
-    },
-    {
-      _id: '7',
-      name: 'Krishna Yadav',
-      reg_no: 'REG007',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2023-11-12').toISOString(),
-      updated_at: new Date('2023-11-12').toISOString(),
-    },
-    {
-      _id: '8',
-      name: 'Anaya Sinha',
-      reg_no: 'REG008',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2023-09-30').toISOString(),
-      updated_at: new Date('2023-09-30').toISOString(),
-    },
-    {
-      _id: '9',
-      name: 'Kabir Mehta',
-      reg_no: 'REG009',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2023-03-25').toISOString(),
-      updated_at: new Date('2023-03-25').toISOString(),
-    },
-    {
-      _id: '10',
-      name: 'Lakshay Choudhary',
-      reg_no: 'REG010',
-      password: 'password123',
-      photo: image,
-      created_at: new Date('2024-02-10').toISOString(),
-      updated_at: new Date('2024-02-10').toISOString(),
-    }
-  ]);
+  const dispatch = useDispatch();
+  const { loading, workers } = useSelector((state: any) => state.admin);
+
+
 
   const [formData, setFormData] = useState<Worker>({
-    _id: '',
     name: '',
     reg_no: '',
     password: '',
-    photo: '',
-    created_at: '',
-    updated_at: ''
+    photo: null,
   });
 
   const [activeTab, setActiveTab] = useState<string>(tab);
@@ -152,15 +59,13 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const [searchName, setSearchName] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-
-
   const [filterType, setFilterType] = useState('Name');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [workerToDelete, setWorkerToDelete] = useState<Worker | null>(null);
-
-  /* const [loading, setLoading] = useState(false); */
   const [pagination, setPagination] = useState({ page: 1, limit: 10 });
+
+  useEffect(() => {
+    dispatch(fetchWorkers(searchName, searchRegNo));
+  }, [dispatch, searchName, searchRegNo]);
 
   const onChangePage = (page: number) => {
     setPagination({ ...pagination, page });
@@ -170,43 +75,16 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   }
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilterType(e.target.value as 'Name' | 'Reg. No.' | 'Filter by Date');
+    setFilterType(e.target.value as 'Name' | 'Reg. No.');
     setSearchName('');
     setSearchRegNo('');
-    setStartDate('');
-    setEndDate('');
   };
-
-  const filteredWorkers = workers.filter(worker => {
-    const lowerCaseName = worker.name.toLowerCase();
-    const lowerCaseRegNo = worker.reg_no.toLowerCase();
-
-    if (filterType === 'Name') {
-      return lowerCaseName.startsWith(searchName.toLowerCase());
-    } else if (filterType === 'Reg. No.') {
-      return lowerCaseRegNo.startsWith(searchRegNo.toLowerCase());
-    } else if (filterType === 'Filter by Date') {
-      const workerDate = new Date(worker.created_at).toISOString().split('T')[0];
-      if (startDate && endDate) {
-        return workerDate >= startDate && workerDate <= endDate;
-      } else if (startDate) {
-        return workerDate === startDate;
-      } else if (endDate) {
-        return workerDate === endDate;
-      }
-      return true;
-    }
-    return true;
-  });
 
   const addWorker = () => {
     const newWorker: Worker = {
-      ...formData,
-      _id: (workers.length + 1).toString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      ...formData
     };
-    setWorkers([...workers, newWorker]);
+    dispatch(addWorkerAction(newWorker));
     resetForm();
   };
 
@@ -219,16 +97,10 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     resetForm();
   };
 
-  // const deleteWorker = (id: string) => {
-  //   setWorkers(workers.filter(worker => worker._id !== id));
-  //   setIsDeleteConfirmOpen(true);
-  // };
-
   const handleDeleteWorker = (reg_no: string) => {
     setWorkerToDelete(workers.find(w => w.reg_no === reg_no) || null);
     setIsDeleteConfirmOpen(true);
   };
-
 
   const confirmDelete = () => {
     if (workerToDelete) {
@@ -244,19 +116,20 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, files } = e.target;
+    if (name === 'photo' && files) {
+      setFormData({ ...formData, photo: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const resetForm = () => {
     setFormData({
-      _id: '',
       name: '',
       reg_no: '',
       password: '',
-      photo: '',
-      created_at: '',
-      updated_at: ''
+      photo: null,
     });
   };
 
@@ -327,7 +200,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="name" placeholder="Name" value={formData.name} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="reg_no" placeholder="Registration No" value={formData.reg_no} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} required />
-            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="photo" placeholder="Photo URL" value={formData.photo} onChange={handleInputChange} required />
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="photo" type="file" accept="image/*" onChange={handleInputChange} required />
             <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500" onClick={addWorker}>Add Worker</button>
           </div>
         </div>
@@ -393,9 +266,10 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
           </div>
           <ThemeProvider theme={theme}>
             <DataGrid
-              rows={filteredWorkers}
+              loading={loading}
+              rows={workers}
               columns={columns}
-              getRowId={(row) => row._id}
+              getRowId={(row) => row.id}
               initialState={{
                 pagination: {
                   paginationModel: { pageSize: pagination.limit, page: pagination.page },
