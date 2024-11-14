@@ -8,11 +8,6 @@ interface AdminState {
     routines: any[];
     loading: boolean;
     error: string | null;
-    meta: {
-        total: number;
-        limit: number;
-        page: number;
-    }
 }
 
 const initialState: AdminState = {
@@ -22,11 +17,6 @@ const initialState: AdminState = {
     routines: [],
     loading: false,
     error: null,
-    meta: {
-        total: 1,
-        limit: 1,
-        page: 1,
-    },
 };
 
 // Async thunks
@@ -39,13 +29,14 @@ interface FetchWorkersParams {
 
 export const fetchWorkers = createAsyncThunk<FetchWorkersParams, { rejectValue: string }>(
     'admin/fetchWorkers',
-    async ({ name, reg_no, page, limit }, { rejectWithValue }) => {
+    async ({ name, reg_no, page, limit, recentlyJoined }, { rejectWithValue }) => {
         try {
             let url = `/workers?`;
             if (name) url += `name=${name}&`;
-            if (reg_no) url += `regno=${reg_no}&`;
+            if (reg_no) url += `reg_no=${reg_no}&`;
             if (page) url += `page=${page}&`;
             if (limit) url += `limit=${limit}&`;
+            if (recentlyJoined) url += `sort_by=created_at&sort_order=desc`;
             const response = await axiosInstance.get(url);
             return response.data;
         } catch (error: any) {
@@ -125,8 +116,7 @@ const adminSlice = createSlice({
             })
             .addCase(fetchWorkers.fulfilled, (state, action: PayloadAction<Array<any>>) => {
                 state.loading = false;
-                state.workers = action.payload.data;
-                state.meta = action.payload.meta;
+                state.workers = action.payload
             })
             .addCase(fetchWorkers.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
@@ -138,8 +128,7 @@ const adminSlice = createSlice({
             })
             .addCase(addWorker.fulfilled, (state, action: PayloadAction<Array<any>>) => {
                 state.loading = false;
-                state.workers = action.payload.data;
-                state.meta = action.payload.meta;
+                state.workers = action.payload
             })
             .addCase(addWorker.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
@@ -151,6 +140,7 @@ const adminSlice = createSlice({
             })
             .addCase(deleteWorker.fulfilled, (state, action: PayloadAction<any>) => {
                 state.loading = false;
+                state.workers = action.payload;
             })
             .addCase(deleteWorker.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
@@ -162,8 +152,7 @@ const adminSlice = createSlice({
             })
             .addCase(updateWorker.fulfilled, (state, action: PayloadAction<any>) => {
                 state.loading = false;
-                state.workers = action.payload.data;
-                state.meta = action.payload.meta;
+                state.workers = action.payload
             })
             .addCase(updateWorker.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;

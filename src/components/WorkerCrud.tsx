@@ -4,7 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchWorkers, addWorker as addWorkerAction, deleteWorker, updateWorker } from '../slices/adminSlice';
-import CustomPagination from './CustomToolbar';
+
 
 
 const theme = createTheme({
@@ -63,30 +63,18 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [filterType, setFilterType] = useState('Name');
-  const [pagination, setPagination] = useState({ page: 1, limit: 10 });
+  const [recentlyJoined, setRecentlyJoined] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchWorkers({ name : searchName, reg_no : searchRegNo, page: pagination.page, limit: pagination.limit }));
-  }, [dispatch, searchName, searchRegNo, pagination.page, pagination.limit]);
-
-  useEffect(() => {
-    setPagination({
-      page: meta.page,
-      limit: meta.limit,
-    });
-  }, [meta]);
-
-  const onChangePage = (page: number) => {
-    setPagination({ ...pagination, page });
-  }
-  const onChangeLimit = (limit: number) => {
-    setPagination({ ...pagination, limit });
-  }
+    dispatch(fetchWorkers({ name: searchName, reg_no: searchRegNo, recentlyJoined: recentlyJoined }));
+  }, [dispatch, searchName, searchRegNo, recentlyJoined]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilterType(e.target.value as 'Name' | 'Reg. No.');
+    const value = e.target.value as 'Name' | 'Reg. No.' | 'Recently Joined';
+    setFilterType(value);
     setSearchName('');
     setSearchRegNo('');
+    setRecentlyJoined(value === 'Recently Joined');
   };
 
   const addWorker = () => {
@@ -173,10 +161,8 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
           </button>
           <button
             className="bg-red-600 text-white text-sm my-4 py-1 px-3 rounded hover:bg-red-700 transition duration-300 ease-in-out h-7 w-1/2"
-            onClick={() => {
-              handleDeleteWorker(params.row.id);
-
-            }
+            onClick={() =>
+              handleDeleteWorker(params.row.id)
             }
           > Delete
           </button>
@@ -243,7 +229,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
         <div className="tab-content">
           <div className="flex flex-row justify-around mb-4 gap-5">
 
-            {filterType !== 'Filter by Date' ? (
+            {filterType !== 'Recently Joined' ? (
               <input
                 className="border border-gray-300 rounded p-2 mb-2 w-full"
                 style={{ backgroundColor: '#1F2937', color: 'white' }}
@@ -252,29 +238,14 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
                 value={filterType === 'Name' ? searchName : searchRegNo}
                 onChange={filterType === 'Name' ? (e) => setSearchName(e.target.value) : (e) => setSearchRegNo(e.target.value)}
               />
-            ) : (
-              <div className="flex flex-row w-3/5 justify-between">
-                <label htmlFor="startDate" className="text-white mb-1">Start Date (dd/mm/yyyy)</label>
-                <input
-                  type="date"
-                  className="border border-gray-300 rounded p-2 mb-2 w-2/5"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-                <label htmlFor="endDate" className="text-white mb-1">End Date (dd/mm/yyyy)</label>
-                <input
-                  type="date"
-                  className="border border-gray-300 rounded p-2 mb-2 w-2/5 ml-2"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-            )}
+            ) :
+              null
+            }
             <div className="w-60">
               <select className="border border-gray-300 rounded p-2 mb-2 w-full" value={filterType} onChange={handleFilterChange}>
                 <option>Name</option>
                 <option>Reg. No.</option>
-                <option>Filter by Date</option>
+                <option>Recently Joined</option>
               </select>
             </div>
           </div>
@@ -284,22 +255,10 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               rows={workers}
               columns={columns}
               getRowId={(row) => row.id}
-              initialState={{
-                pagination: {
-                  paginationModel: { pageSize: pagination.limit, page: pagination.page },
-                },
-              }}
-              rowCount={meta.total}
-              onPaginationModelChange={(params) => {
-                onChangePage(params.page);
-                onChangeLimit(params.pageSize);
-              }}
-              paginationMode='server'
+              paginationMode='client'
               pagination
-              slots={
-                {
-                  pagination: CustomPagination
-                }
+              pageSizeOptions={
+                [5, 10, 20, 50, 100]
               }
             />
           </ThemeProvider>

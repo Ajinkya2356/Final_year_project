@@ -40,7 +40,6 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve) => {
@@ -66,7 +65,7 @@ axiosInstance.interceptors.response.use(
           },
           withCredentials: true,
         });
-
+        console.log("Response", response)
         const newAccessToken = response.data.token;
         localStorage.setItem('access_token', newAccessToken);
         isRefreshing = false;
@@ -75,11 +74,10 @@ axiosInstance.interceptors.response.use(
         originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        console.log("Error", refreshError)
         isRefreshing = false;
         isLoggedOut = true;
-        store.dispatch(logoutUser());
         window.location.href = '/';
+        localStorage.removeItem('access_token');
         return Promise.reject(refreshError);
       }
     }
