@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
 import axiosInstance from '../api/axiosInstance';
 
 interface AdminState {
@@ -9,6 +8,11 @@ interface AdminState {
     routines: any[];
     loading: boolean;
     error: string | null;
+    meta: {
+        total: number;
+        limit: number;
+        page: number;
+    }
 }
 
 const initialState: AdminState = {
@@ -18,23 +22,32 @@ const initialState: AdminState = {
     routines: [],
     loading: false,
     error: null,
+    meta: {
+        total: 1,
+        limit: 1,
+        page: 1,
+    },
 };
 
 // Async thunks
 interface FetchWorkersParams {
     name: string;
-    regno: string;
+    reg_no: string;
+    page: number;
+    limit: number;
 }
 
 export const fetchWorkers = createAsyncThunk<FetchWorkersParams, { rejectValue: string }>(
     'admin/fetchWorkers',
-    async ({ name, regno }, { rejectWithValue }) => {
+    async ({ name, reg_no, page, limit }, { rejectWithValue }) => {
         try {
             let url = `/workers?`;
             if (name) url += `name=${name}&`;
-            if (regno) url += `regno=${regno}&`;
+            if (reg_no) url += `regno=${reg_no}&`;
+            if (page) url += `page=${page}&`;
+            if (limit) url += `limit=${limit}&`;
             const response = await axiosInstance.get(url);
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
                 return rejectWithValue(error.response.data.message);
@@ -99,25 +112,6 @@ export const deleteWorker = createAsyncThunk('admin/deleteWorker', async (id, { 
     }
 });
 
-export const fetchMeters = createAsyncThunk('admin/fetchMeters', async () => {
-    const response = await axios.get('/api/meters');
-    return response.data;
-});
-
-export const fetchInspections = createAsyncThunk('admin/fetchInspections', async () => {
-    const response = await axios.get('/api/inspections');
-    return response.data;
-});
-
-export const fetchRoutines = createAsyncThunk('admin/fetchRoutines', async () => {
-    const response = await axios.get('/api/routines');
-    return response.data;
-});
-
-export const removeInspection = createAsyncThunk('admin/removeInspection', async (id: string) => {
-    await axios.delete(`/api/inspections/${id}`);
-    return id;
-});
 
 const adminSlice = createSlice({
     name: 'admin',
@@ -131,7 +125,8 @@ const adminSlice = createSlice({
             })
             .addCase(fetchWorkers.fulfilled, (state, action: PayloadAction<Array<any>>) => {
                 state.loading = false;
-                state.workers = action.payload;
+                state.workers = action.payload.data;
+                state.meta = action.payload.meta;
             })
             .addCase(fetchWorkers.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
@@ -141,8 +136,10 @@ const adminSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(addWorker.fulfilled, (state) => {
+            .addCase(addWorker.fulfilled, (state, action: PayloadAction<Array<any>>) => {
                 state.loading = false;
+                state.workers = action.payload.data;
+                state.meta = action.payload.meta;
             })
             .addCase(addWorker.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
@@ -165,6 +162,8 @@ const adminSlice = createSlice({
             })
             .addCase(updateWorker.fulfilled, (state, action: PayloadAction<any>) => {
                 state.loading = false;
+                state.workers = action.payload.data;
+                state.meta = action.payload.meta;
             })
             .addCase(updateWorker.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;

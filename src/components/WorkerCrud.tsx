@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchWorkers, addWorker as addWorkerAction, deleteWorker, updateWorker } from '../slices/adminSlice';
+import CustomPagination from './CustomToolbar';
 
 
 const theme = createTheme({
@@ -44,7 +45,7 @@ interface WorkerCrudProps {
 
 const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const dispatch = useDispatch();
-  const { loading, workers } = useSelector((state: any) => state.admin);
+  const { loading, workers, meta } = useSelector((state: any) => state.admin);
 
 
 
@@ -65,8 +66,15 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const [pagination, setPagination] = useState({ page: 1, limit: 10 });
 
   useEffect(() => {
-    dispatch(fetchWorkers(searchName, searchRegNo));
-  }, [dispatch, searchName, searchRegNo]);
+    dispatch(fetchWorkers({ name : searchName, reg_no : searchRegNo, page: pagination.page, limit: pagination.limit }));
+  }, [dispatch, searchName, searchRegNo, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    setPagination({
+      page: meta.page,
+      limit: meta.limit,
+    });
+  }, [meta]);
 
   const onChangePage = (page: number) => {
     setPagination({ ...pagination, page });
@@ -87,6 +95,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     };
     dispatch(addWorkerAction(newWorker));
     resetForm();
+    setActiveTab('get');
   };
 
   const handleUpdateWorker = () => {
@@ -222,7 +231,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="reg_no" placeholder="Registration No" value={formData.reg_no} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} required />
 
-            <span className='flex justify-center m-3'><img src={formData.photo} alt={`user {formData.reg_no}`} height={100} width={150} /></span>
+            <span className='flex justify-center m-3'><img src={formData.photo} alt={`user {formData.reg_no}`} height={50} width={50} /></span>
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="photo" type="file" accept="image/*" onChange={handleInputChange} required />
 
             <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500" onClick={handleUpdateWorker}>Update Worker</button>
@@ -280,13 +289,18 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
                   paginationModel: { pageSize: pagination.limit, page: pagination.page },
                 },
               }}
-              rowCount={10}
+              rowCount={meta.total}
               onPaginationModelChange={(params) => {
                 onChangePage(params.page);
                 onChangeLimit(params.pageSize);
               }}
               paginationMode='server'
               pagination
+              slots={
+                {
+                  pagination: CustomPagination
+                }
+              }
             />
           </ThemeProvider>
         </div>

@@ -24,7 +24,7 @@ const AdminSideBar: React.FC<AdminSideBarProps> = ({ selectedComponent, setSelec
           <div className="flex justify-between items-center space-x-3 w-full" >
             <div className='flex flex-1 gap-2'>
               <PeopleIcon />
-              <span>Worker</span></div>
+              <span>Workers</span></div>
           </div>
 
 

@@ -10,8 +10,8 @@ const Navbar: React.FC = () => {
         dispatch(logoutUser());
     }
     return (
-        <div className="container mx-auto w-full">
-            <nav className="bg-gray-800 shadow-md p-4 flex justify-between items-center w-full">
+        <div className="w-full">
+            <nav className="bg-gray-800 shadow-md p-4 flex justify-between items-center w-full ">
                 <div className="text-xl font-bold">Dashboard</div>
                 {loading ? (
                     <div className="text-white">Loading...</div>
