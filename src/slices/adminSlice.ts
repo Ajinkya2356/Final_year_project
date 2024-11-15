@@ -136,6 +136,23 @@ export const deleteInspection = createAsyncThunk('admin/deleteInspection', async
     }
 });
 
+export const getRoutines = createAsyncThunk('admin/getRoutines', async (params, { rejectWithValue }) => {
+    try {
+        let url = `/getRoutines?`;
+        Object.entries(params).forEach(([key, value]) => {
+            if (value && value != 'all') url += `${key}=${value}&`;
+        });
+        const response = await axiosInstance.get(url);
+        return response.data;
+    } catch (error: any) {
+        if (error.response && error.response.data) {
+            return rejectWithValue(error.response.data.message);
+        } else {
+            return rejectWithValue(error.message);
+        }
+    }
+});
+
 const adminSlice = createSlice({
     name: 'admin',
     initialState,
@@ -217,6 +234,19 @@ const adminSlice = createSlice({
                 state.meta = action.payload.meta;
             })
             .addCase(deleteInspection.rejected, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(getRoutines.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getRoutines.fulfilled, (state, action: PayloadAction<Array<any>>) => {
+                state.loading = false;
+                state.routines = action.payload.data;
+                state.meta = action.payload.meta;
+            })
+            .addCase(getRoutines.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
                 state.error = action.payload;
             });
