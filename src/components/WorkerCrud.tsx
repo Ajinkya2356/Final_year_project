@@ -32,11 +32,12 @@ const theme = createTheme({
   },
 });
 
-interface Worker {
+interface createWorker {
   name: string;
   reg_no: string;
   password: string;
   photo: File | null;
+  user_role?: string;
 }
 
 interface WorkerCrudProps {
@@ -46,16 +47,12 @@ interface WorkerCrudProps {
 const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const dispatch = useDispatch();
   const { loading, workers, meta } = useSelector((state: any) => state.admin);
-
-
-
-  const [formData, setFormData] = useState<Worker>({
+  const [createForm, setCreateForm] = useState<createWorker>({
     name: '',
     reg_no: '',
     password: '',
     photo: null,
   });
-
   const [activeTab, setActiveTab] = useState<string>(tab);
   const [searchRegNo, setSearchRegNo] = useState<string>('');
   const [searchName, setSearchName] = useState<string>('');
@@ -64,10 +61,22 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [filterType, setFilterType] = useState('Name');
   const [recentlyJoined, setRecentlyJoined] = useState(false);
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
+    page: 0,
+    pageSize: 10,
+  });
 
   useEffect(() => {
-    dispatch(fetchWorkers({ name: searchName, reg_no: searchRegNo, recentlyJoined: recentlyJoined }));
-  }, [dispatch, searchName, searchRegNo, recentlyJoined]);
+    dispatch(fetchWorkers({
+      name: searchName,
+      reg_no: searchRegNo,
+      recentlyJoined: recentlyJoined,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+    }));
+  }, [dispatch, searchName, searchRegNo, recentlyJoined, paginationModel]);
+
+
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value as 'Name' | 'Reg. No.' | 'Recently Joined';
@@ -78,16 +87,34 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   };
 
   const addWorker = () => {
-    const newWorker: Worker = {
-      ...formData
-    };
-    dispatch(addWorkerAction(newWorker));
+    const form = new FormData();
+    form.append('name', createForm.name);
+    form.append('reg_no', createForm.reg_no);
+    form.append('password', createForm.password);
+    form.append('photo', createForm.photo as Blob);
+    dispatch(addWorkerAction(form));
+    setPaginationModel({
+      page: 0,
+      pageSize: 10,
+    })
     resetForm();
     setActiveTab('get');
   };
 
   const handleUpdateWorker = () => {
-    dispatch(updateWorker({ id: selectedRow, worker: formData }));
+    const form = new FormData();
+    Object.entries(createForm).forEach(([key, value]) => {
+      if (key !== 'photo' && value !== '') {
+        form.append(key, value as string);
+      } else if (key === 'photo' && value !== null) {
+        form.append(key, value as Blob);
+      }
+    });
+    dispatch(updateWorker({ id: selectedRow, worker: form }));
+    setPaginationModel({
+      page: 0,
+      pageSize: 10,
+    })
     setSelectedRow(null);
     setIsUpdating(false);
     resetForm();
@@ -100,6 +127,10 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
 
   const confirmDelete = () => {
     dispatch(deleteWorker(selectedRow));
+    setPaginationModel({
+      page: 0,
+      pageSize: 10,
+    })
     setIsDeleteConfirmOpen(false);
     setSelectedRow(null)
   };
@@ -112,14 +143,14 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
     if (name === 'photo' && files) {
-      setFormData({ ...formData, photo: files[0] });
+      setCreateForm({ ...createForm, photo: files[0] });
     } else {
-      setFormData({ ...formData, [name]: value });
+      setCreateForm({ ...createForm, [name]: value });
     }
   };
 
   const resetForm = () => {
-    setFormData({
+    setCreateForm({
       name: '',
       reg_no: '',
       password: '',
@@ -143,6 +174,11 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     { field: 'name', headerName: 'Name', flex: 1, resizable: false, headerAlign: 'center', },
     { field: 'reg_no', headerName: 'Registration No', flex: 1, resizable: false, headerAlign: 'center', },
     {
+      field: 'user_role', headerName: 'User Role', flex: 1, resizable: false, headerAlign: 'center', renderCell: (params) => (
+        <span>{params.value.charAt(0).toUpperCase() + params.value.slice(1).toLowerCase()}</span>
+      ),
+    },
+    {
       field: 'actions',
       flex: 1,
       headerName: 'Actions',
@@ -153,7 +189,13 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
           <button
             className="bg-blue-600 text-white text-sm my-4 py-1 px-3 rounded hover:bg-blue-700 transition duration-300 ease-in-out h-7 w-1/2"
             onClick={() => {
-              setFormData(params.row);
+              setCreateForm({
+                name: params.row.name as string,
+                reg_no: params.row.reg_no as string,
+                password: '',
+                photo: params.row.photo,
+                user_role: params.row.user_role
+              });
               setIsUpdating(true);
               setSelectedRow(params.row.id);
             }}
@@ -194,9 +236,9 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               ✕
             </button>
             <h2 className="text-xl text-gray-700 font-semibold mb-4">Add Worker</h2>
-            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="name" placeholder="Name" value={formData.name} onChange={handleInputChange} required />
-            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="reg_no" placeholder="Registration No" value={formData.reg_no} onChange={handleInputChange} required />
-            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} required />
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="name" placeholder="Name" value={createForm.name} onChange={handleInputChange} required />
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="reg_no" placeholder="Registration No" value={createForm.reg_no} onChange={handleInputChange} required />
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="password" type="password" placeholder="Password" value={createForm.password} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="photo" type="file" accept="image/*" onChange={handleInputChange} required />
             <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500" onClick={addWorker}>Add Worker</button>
           </div>
@@ -213,11 +255,21 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               ✕
             </button>
             <h2 className="text-xl text-gray-700 font-semibold mb-4">Update Worker</h2>
-            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="name" placeholder="Name" value={formData.name} onChange={handleInputChange} required />
-            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="reg_no" placeholder="Registration No" value={formData.reg_no} onChange={handleInputChange} required />
-            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} required />
-
-            <span className='flex justify-center m-3'><img src={formData.photo} alt={`user {formData.reg_no}`} height={50} width={50} /></span>
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="name" placeholder="Name" value={createForm.name} onChange={handleInputChange} required />
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="reg_no" placeholder="Registration No" value={createForm.reg_no} onChange={handleInputChange} required />
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="password" type="password" placeholder="Password" value={createForm.password} onChange={handleInputChange} required />
+            <select
+              className="border border-gray-300 rounded p-2 mb-2 w-full bg-gray-900 text-white"
+              name="user_role"
+              value={createForm.user_role || ''}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="" disabled>Select User Role</option>
+              <option value="worker">Worker</option>
+              <option value="admin">Admin</option>
+            </select>
+            <span className='flex justify-center m-3'><img src={createForm.photo} alt={`user {formData.reg_no}`} height={50} width={50} /></span>
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="photo" type="file" accept="image/*" onChange={handleInputChange} required />
 
             <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500" onClick={handleUpdateWorker}>Update Worker</button>
@@ -255,11 +307,14 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
               rows={workers}
               columns={columns}
               getRowId={(row) => row.id}
-              paginationMode='client'
+              paginationMode='server'
               pagination
+              rowCount={meta.total}
               pageSizeOptions={
-                [5, 10, 20, 50, 100]
+                [2, 5, 10, 20, 50, 100]
               }
+              paginationModel={paginationModel}
+              onPaginationModelChange={setPaginationModel}
             />
           </ThemeProvider>
         </div>
