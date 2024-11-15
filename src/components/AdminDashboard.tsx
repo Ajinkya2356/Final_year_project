@@ -13,7 +13,7 @@ const AdminDashboard: React.FC = () => {
       case 'WorkerCrud':
         return <WorkerCrud tab={'get'} />;
       case 'MeterCrud':
-        return <MeterCrud />;
+        return <MeterCrud tab={'get'} />;
       case 'WorkerCrud_add':
         return <WorkerCrud tab={'add'} />;
       case 'InspectionCrud':

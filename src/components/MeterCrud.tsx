@@ -1,225 +1,441 @@
-import React, { useState } from 'react';
-import image from '../assets/meter.jpg'
+import React, { useEffect, useState } from 'react';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { useDispatch, useSelector } from 'react-redux';
+import Tooltip from '@mui/material/Tooltip';
+import { addMeter, deleteMeter, getMeters, updateExistMeter } from '../slices/adminSlice';
 
-// Define a type for Meter
-interface Meter {
-  id: number;
-  serial_no: string;
-  model: string;
-  description: string;
-  photo: string;
+
+const theme = createTheme({
+  components: {
+    MuiDataGrid: {
+      styleOverrides: {
+        root: {
+          '& .MuiDataGrid-cell': {
+            color: 'white',
+            backgroundColor: '#1F2937',
+            borderColor: "white",
+            borderWidth: 0.5,
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            backgroundColor: '#111828',
+            color: 'black',
+          },
+          '& .MuiDataGrid-footerContainer': {
+            backgroundColor: '#1F2937',
+            color: 'white',
+          },
+        },
+      },
+    },
+  },
+});
+
+interface MeterCrudProps {
+  tab: string;
 }
 
-// Initial data
-const initialMeters: Meter[] = [
-  { id: 1, serial_no: 'SN001', model: 'LM 1360', description: 'Digital Multimeter with basic functions.', photo: image },
-  { id: 2, serial_no: 'SN002', model: 'LM 1375', description: 'Compact multimeter with advanced features.', photo: image },
-  { id: 3, serial_no: 'SN003', model: 'LM 1382', description: 'High precision multimeter for professionals.', photo: image },
-  { id: 4, serial_no: 'SN004', model: 'LM 1390', description: 'Multimeter with additional measuring modes.', photo: image },
-  { id: 5, serial_no: 'SN005', model: 'LM 1405', description: 'Rugged multimeter suitable for outdoor use.', photo: image },
-  { id: 6, serial_no: 'SN006', model: 'LM 1412', description: 'Smart multimeter with Bluetooth connectivity.', photo: image },
-  { id: 7, serial_no: 'SN007', model: 'LM 1428', description: 'Versatile multimeter for various applications.', photo: image },
-  { id: 8, serial_no: 'SN008', model: 'LM 1436', description: 'Professional-grade multimeter with data logging.', photo: image },
-  { id: 9, serial_no: 'SN009', model: 'LM 1444', description: 'Compact and lightweight multimeter.', photo: image },
-  { id: 10, serial_no: 'SN010', model: 'LM 1450', description: 'Multimeter with touchscreen interface.', photo: image },
-];
+interface createMeter {
+  model: string;
+  description: string;
+  photo: File | null;
+  screen_photos: File[];
+}
 
-const MeterCrud: React.FC = () => {
-  const [meters, setMeters] = useState<Meter[]>(initialMeters);
-  const [currentMeter, setCurrentMeter] = useState<Meter | null>(null);
-  const [formData, setFormData] = useState<Omit<Meter, 'id'>>({
-    serial_no: '',
+interface updateMeter {
+  model?: string;
+  description?: string;
+  photo?: File | null;
+  screen_photos?: File[];
+}
+
+const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
+  const dispatch = useDispatch();
+  const { meters, loading, meta } = useSelector((state: any) => state.admin);
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0, pageSize: 10,
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<string>(tab);
+  const [createMeter, setCreateMeter] = useState<createMeter>({
     model: '',
     description: '',
-    photo: '',
+    photo: null,
+    screen_photos: []
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMeter, setSelectedMeter] = useState<any>(null);
+  const [updateMeter, setUpdateMeter] = useState<updateMeter>({
+    model: '',
+    description: '',
+    photo: null,
+    screen_photos: []
+  });
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [meterToDelete, setMeterToDelete] = useState<Meter | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+  const handlePagination = (params) => {
+    setPaginationModel({
+      page: params.page,
+      pageSize: params.pageSize
+    });
   };
 
-  const handleAddMeter = () => {
-    const newMeter: Meter = {
-      id: meters.length + 1,
-      ...formData,
-    };
-    setMeters([...meters, newMeter]);
-    closeModal();
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
   };
 
-  const handleEditMeter = (meter: Meter) => {
-    setCurrentMeter(meter);
-    setFormData({ serial_no: meter.serial_no, model: meter.model, description: meter.description, photo: meter.photo });
-    setIsModalOpen(true);
-  };
-
-  const handleUpdateMeter = () => {
-    if (currentMeter) {
-      const updatedMeters = meters.map(m => (m.id === currentMeter.id ? { ...currentMeter, ...formData } : m));
-      setMeters(updatedMeters);
-      setCurrentMeter(null);
+  const handleInputChange = (event) => {
+    const { name, value, files } = event.target;
+    if (name === 'screen_photos' && files) {
+      setCreateMeter({
+        ...createMeter,
+        screen_photos: Array.from(files)
+      });
+    } else if (name === 'photo' && files) {
+      setCreateMeter({
+        ...createMeter,
+        photo: files[0]
+      });
+    } else {
+      setCreateMeter({
+        ...createMeter,
+        [name]: value
+      });
     }
-    closeModal();
   };
 
-  const handleDeleteMeter = (id: number) => {
-    setMeterToDelete(meters.find(m => m.id === id) || null);
-    setIsDeleteConfirmOpen(true);
-  };
+  const handleUpdate = (event) => {
+    const { name, value, files } = event.target;
+    if (name === 'screen_photos' && files) {
+      setUpdateMeter({
+        ...updateMeter,
+        screen_photos: Array.from(files)
+      });
+    } else if (name === 'photo' && files) {
+      setUpdateMeter({
+        ...updateMeter,
+        photo: files[0]
+      });
+    } else {
+      setUpdateMeter({
+        ...updateMeter,
+        [name]: value
+      });
+    }
+  }
 
   const confirmDelete = () => {
-    if (meterToDelete) {
-      setMeters(meters.filter(m => m.id !== meterToDelete.id));
-    }
+    dispatch(deleteMeter(selectedMeter.id));
     setIsDeleteConfirmOpen(false);
-    setMeterToDelete(null);
+    setSelectedMeter(null)
+    setActiveTab('get')
   };
 
   const cancelDelete = () => {
     setIsDeleteConfirmOpen(false);
-    setMeterToDelete(null);
+    setSelectedMeter(null)
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (currentMeter) {
-      handleUpdateMeter();
-    } else {
-      handleAddMeter();
+  const resetform = () => {
+    if (activeTab == 'add') {
+      setCreateMeter({
+        model: '',
+        description: '',
+        photo: null,
+        screen_photos: []
+      });
     }
+    else {
+      setUpdateMeter({
+        model: '',
+        description: '',
+        photo: null,
+        screen_photos: []
+      });
+    };
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setFormData({ serial_no: '', model: '', description: '', photo: '' });
-  };
+  useEffect(() => {
+    dispatch(getMeters({
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      model: searchQuery
+    }));
+  }, [dispatch, paginationModel, searchQuery]);
 
-  // Filter meters based on the search term
-  const filteredMeters = meters.filter(meter =>
-    meter.model.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const columns: GridColDef[] = [
+    { field: 'id', headerName: 'ID', flex: 1, headerAlign: 'center', align: 'center' },
+    { field: 'model', headerName: 'Model', width: 100, headerAlign: 'center', align: 'center' },
+    {
+      field: 'photo',
+      headerName: 'Photo',
+      width: 150,
+      headerAlign: 'center', align: 'center',
+      renderCell: (params) => (
+        <div className='flex justify-center items-center flex-1'>
+          <img src={params.value} alt={params.row.model} />
+        </div>
+      ),
+    },
+    {
+      field: 'screen_photos',
+      headerName: 'Screen Photos',
+      width: 150,
+      headerAlign: 'center', align: 'center',
+      renderCell: (params) => (
+        <div
+          className="grid gap-2"
+          style={{
+            gridTemplateColumns: `repeat(${Math.min(params.value.length, 3)}, minmax(0, 1fr))`,
+          }}
+        >
+          {params.value.map((photo, index) => (
+            <img key={index} src={photo} alt={`${params.row.model}-${index}`} className="object-cover" />
+          ))}
+        </div>
+      ),
+    },
+    {
+      field: 'description',
+      headerName: 'Description',
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: (params) => (
+        <Tooltip title={params.value}>
+          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {params.value}
+          </div>
+        </Tooltip>
+      ),
+    },
+
+    {
+      field: 'actions',
+      headerName: '',
+      flex: 1,
+      headerAlign: 'center', align: 'center',
+      renderCell: (params) => (
+        <div className="flex space-x-2 justify-between items-center h-full">
+          <button
+            className="bg-blue-600 text-white text-sm my-4 py-1 px-3 rounded hover:bg-blue-700 transition duration-300 ease-in-out h-7 w-1/2"
+            onClick={() => {
+              setActiveTab('update');
+              setUpdateMeter({
+                model: params.row.model,
+                description: params.row.description,
+                photo: params.row.photo,
+                screen_photos: params.row.screen_photos
+              });
+              setSelectedMeter(params.row);
+            }}
+          > Update
+          </button>
+          <button
+            className="bg-red-600 text-white text-sm my-4 py-1 px-3 rounded hover:bg-red-700 transition duration-300 ease-in-out h-7 w-1/2"
+            onClick={() => {
+              setIsDeleteConfirmOpen(true)
+              setSelectedMeter(params.row);
+            }}
+          > Delete
+          </button>
+
+        </div>
+      ),
+    },
+
+  ];
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold text-center mb-6">Multimeter CRUD</h1>
-      <div className="flex justify-between items-center mb-4">
+    <div className="container">
+      <h1 className="text-2xl font-bold text-center mb-6">Meter Management</h1>
+      <div className="flex justify-between mb-4 items-center gap-10">
         <input
           type="text"
-          placeholder="Search by Model Number"
-          value={searchTerm}
+          placeholder="Search by model"
+          value={searchQuery}
           onChange={handleSearchChange}
-          className="border border-gray-300 rounded p-2 mb-2 w-1/3"
+          className="p-2 border border-gray-300 rounded flex-1"
         />
-        <button onClick={() => setIsModalOpen(true)} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">
-          Add Meter
+        <button
+          className="bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-500"
+          onClick={() => setActiveTab(prevTab => (prevTab === 'add' ? 'get' : 'add'))}
+        >
+          {activeTab === 'add' ? 'Show All' : 'Add'}
         </button>
-      </div>
 
+      </div>
       <div className="grid grid-cols-1 gap-4">
-        {filteredMeters.length > 0 ? (
-          filteredMeters.map(meter => (
-            <div key={meter.id} className="flex border p-4 rounded">
-              <img src={meter.photo} alt={meter.model} className="w-1/5 h-full object-cover" />
-              <div className="flex-1 px-4">
-                <h2 className="text-lg font-semibold">{meter.model}</h2>
-                <p className="text-sm">{meter.description}</p>
-              </div>
-              <div className="flex flex-col mb-2 w-1/5">
-                <button onClick={() => handleEditMeter(meter)} className="mb-2 px-2 py-1 bg-yellow-500 text-white rounded">
-                  Edit
-                </button>
-                <button onClick={() => handleDeleteMeter(meter.id)} className="px-2 py-1 bg-red-500 text-white rounded">
-                  Delete
-                </button>
-              </div>
+        {activeTab === 'add' && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded shadow-lg relative w-1/3">
+              <button
+                className="absolute bg-white top-2 right-2 text-gray-700 hover:text-gray-500"
+                onClick={() => setActiveTab('get')}
+              >
+                ✕
+              </button>
+              <h2 className="text-xl text-gray-700 font-semibold mb-4">Add Meter</h2>
+              {Object.entries(createMeter).map(([key, value]) => {
+                return (
+                  <div key={key}>
+                    {(key === 'screen_photos' || key === 'photo') && (
+                      <label className="flex justify-start text-md font-semibold text-gray-800" htmlFor={key}>
+                        Meter Photos
+                      </label>
+                    )}
+                    <input
+                      style={{ backgroundColor: '#1F2937', color: 'white' }}
+                      className="border border-gray-300 rounded p-2 mb-2 w-full"
+                      name={key}
+                      type={key === 'photo' || key === 'screen_photos' ? 'file' : 'text'}
+                      placeholder={`Meter ${key}`}
+                      defaultValue={key === 'screen_photos' ? undefined : value}
+                      onChange={handleInputChange}
+                      multiple={key === 'screen_photos'}
+                      accept={
+                        (key === 'screen_photos' || key === 'photo') ? 'image/*' : undefined
+                      }
+                    />
+                  </div>
+                );
+              })}
+              <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500" onClick={() => {
+                const formData = new FormData();
+                Object.entries(createMeter).forEach(([key, value]) => {
+                  if (key === 'screen_photos') {
+                    value.forEach((file) => {
+                      formData.append(key, file);
+                    });
+                  } else if (key === 'photo') {
+                    formData.append(key, value);
+                  } else {
+                    formData.append(key, value);
+                  }
+                });
+                dispatch(addMeter(formData));
+                setActiveTab('get');
+                resetform();
+              }} >Add Meter</button>
             </div>
-          ))
-        ) : (
-          <h4>No meters found</h4>
+          </div>
         )}
-      </div>
+        {
+          activeTab == 'update' && (
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded shadow-lg relative w-2/3">
+                <button
+                  className="absolute bg-white top-2 right-2 text-gray-700 hover:text-gray-500"
+                  onClick={() => setActiveTab('get')}
+                >
+                  ✕
+                </button>
+                <h2 className="text-xl text-gray-700 font-semibold mb-4">Update Meter</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {Object.entries(updateMeter).map(([key, value]) => {
+                    return (
+                      <div key={key}>
+                        {(key === 'screen_photos' || key === 'photo') && (
+                          <>
+                            <label className="flex justify-start text-md font-semibold text-gray-800" htmlFor={key}>
+                              Meter Photos
+                            </label>
+                            {key === 'photo' && (
+                              <img src={value} alt={updateMeter.model} className="w-1/2" />
+                            )}
+                            {key === 'screen_photos' && (
+                              <div
+                                className="grid gap-2"
+                                style={{
+                                  gridTemplateColumns: `repeat(${Math.min(value.length, 3)}, minmax(0, 1fr))`,
+                                }}
+                              >
+                                {value.map((photo, index) => (
+                                  <img key={index} src={photo} alt={`${updateMeter.model}-${index}`} />
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+                        <input
+                          style={{ backgroundColor: '#1F2937', color: 'white' }}
+                          className="border border-gray-300 rounded p-2 mb-2 w-full"
+                          name={key}
+                          type={key === 'photo' || key === 'screen_photos' ? 'file' : 'text'}
+                          placeholder={`Meter ${key}`}
+                          defaultValue={key === 'screen_photos' || key === 'photo' ? undefined : value}
+                          multiple={key === 'screen_photos'}
+                          accept={(key === 'screen_photos' || key === 'photo') ? 'image/*' : undefined}
+                          onChange={handleUpdate}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
 
 
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg">
-            <h2 className="text-xl mb-4">{currentMeter ? 'Update Meter' : 'Add Meter'}</h2>
-            <form onSubmit={handleSubmit}>
-              <input
-                type="text"
-                name="serial_no"
-                value={formData.serial_no}
-                onChange={handleInputChange}
-                placeholder="Serial Number"
-                required
-                className="border mb-2 p-2 w-full"
-              />
-              <input
-                type="text"
-                name="model"
-                value={formData.model}
-                onChange={handleInputChange}
-                placeholder="Model"
-                required
-                className="border mb-2 p-2 w-full"
-              />
-              <input
-                type="text"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Description"
-                required
-                className="border mb-2 p-2 w-full"
-              />
-              <input
-                type="text"
-                name="photo"
-                value={formData.photo}
-                onChange={handleInputChange}
-                placeholder="Photo URL"
-                required
-                className="border mb-2 p-2 w-full"
-              />
-              <div className="flex justify-end mt-4">
-                <button type="button" onClick={closeModal} className="mr-2 px-4 py-2 bg-gray-300 rounded">
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
-                  {currentMeter ? 'Update Meter' : 'Add Meter'}
-                </button>
+                <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500"
+                  onClick={() => {
+                    const formData = new FormData();
+                    Object.entries(updateMeter).forEach(([key, value]) => {
+                      if (value === null || value === '') return;
+                      if (value !== selectedMeter[key]) {
+                        if (key === 'screen_photos') {
+                          value.forEach((file) => {
+                            formData.append(key, file);
+                          });
+                        } else if (key === 'photo') {
+                          formData.append(key, value);
+                        } else {
+                          formData.append(key, value);
+                        }
+                      }
+                    })
+                    dispatch(updateExistMeter({ id: selectedMeter.id, meter: formData }));
+                    setActiveTab('get');
+                    resetform();
+                  }}>Update Worker</button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>)
+        }
+        {
+          activeTab == 'get' && (
+            <div>
+              <ThemeProvider theme={theme}>
+                <DataGrid
+                  loading={loading}
+                  rows={meters}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  pageSizeOptions={[2, 5, 10, 20]}
+                  paginationMode="server"
+                  rowCount={meta.total}
+                  onPaginationModelChange={(params) => handlePagination(params)}
+                  rowHeight={150}
+                  getRowId={(row) => row.id}
+                  onRowClick={(row) => setSelectedMeter(row.row)}
+                />
+              </ThemeProvider>
+            </div>
+          )
+        }
+        {isDeleteConfirmOpen && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded shadow-lg">
+              <h2 className="text-gray-500  text-lg mb-4">Are you sure you want to delete this Worker ?</h2>
+              <div className="flex justify-end">
+                <button onClick={confirmDelete} className="mr-2 px-4 py-2 bg-red-500 text-white rounded">
+                  Yes
+                </button>
+                <button onClick={cancelDelete} className=" px-4 py-2 bg-gray-300 rounded">
+                  No
+                </button>
 
-      
-      {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg">
-            <h2 className="text-gray-500  text-lg mb-4">Are you sure you want to delete this meter?</h2>
-            <div className="flex justify-end">
-              <button onClick={confirmDelete} className="mr-2 px-4 py-2 bg-red-500 text-white rounded">
-                Yes
-              </button>
-              <button onClick={cancelDelete} className=" px-4 py-2 bg-gray-300 rounded">
-                No
-              </button>
-              
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+      </div>
     </div>
   );
 };
