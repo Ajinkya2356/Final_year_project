@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import WorkerCrud from './WorkerCrud';
 import MeterCrud from './MeterCrud';
 import AdminSideBar from './AdminSideBar';
+import InspectionCrud from './InspectionCrud';
 
 const AdminDashboard: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<string>('WorkerCrud');
@@ -14,6 +15,8 @@ const AdminDashboard: React.FC = () => {
         return <MeterCrud />;
       case 'WorkerCrud_add':
         return <WorkerCrud tab={'add'} />;
+      case 'InspectionCrud':
+        return <InspectionCrud tab={'get'} />;
       default:
         return <WorkerCrud tab={'get'} />;
     }

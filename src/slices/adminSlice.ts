@@ -106,6 +106,35 @@ export const deleteWorker = createAsyncThunk('admin/deleteWorker', async (id, { 
     }
 });
 
+export const getInspections = createAsyncThunk('admin/getInspections', async (params, { rejectWithValue }) => {
+    try {
+        let url = `/getInspections?`;
+        Object.entries(params).forEach(([key, value]) => {
+            if (value && value != 'all') url += `${key}=${value}&`;
+        });
+        const response = await axiosInstance.get(url);
+        return response.data;
+    } catch (error: any) {
+        if (error.response && error.response.data) {
+            return rejectWithValue(error.response.data.message);
+        } else {
+            return rejectWithValue(error.message);
+        }
+    }
+});
+
+export const deleteInspection = createAsyncThunk('admin/deleteInspection', async (id, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.delete(`/remove_inspection/${id}`);
+        return response.data;
+    } catch (error: any) {
+        if (error.response && error.response.data) {
+            return rejectWithValue(error.response.data.message);
+        } else {
+            return rejectWithValue(error.message);
+        }
+    }
+});
 
 const adminSlice = createSlice({
     name: 'admin',
@@ -165,6 +194,32 @@ const adminSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
+            .addCase(getInspections.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getInspections.fulfilled, (state, action: PayloadAction<Array<any>>) => {
+                state.loading = false;
+                state.inspections = action.payload.data;
+                state.meta = action.payload.meta;
+            })
+            .addCase(getInspections.rejected, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(deleteInspection.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteInspection.fulfilled, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+                state.inspections = action.payload.data;
+                state.meta = action.payload.meta;
+            })
+            .addCase(deleteInspection.rejected, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+                state.error = action.payload;
+            });
     },
 });
 

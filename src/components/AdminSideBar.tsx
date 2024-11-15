@@ -44,7 +44,7 @@ const AdminSideBar: React.FC<AdminSideBarProps> = ({ selectedComponent, setSelec
         <li
           className={`flex items-center p-4 font-bold cursor-pointer hover:bg-gray-600 ${selectedComponent === 'AdminAnalysis' ? 'bg-gray-700' : ''
             }`}
-          onClick={() => setSelectedComponent('Inpsections')}
+          onClick={() => setSelectedComponent('InspectionCrud')}
         >
           <VerifiedIcon className="mr-3" />
           <span>Inspections</span>
