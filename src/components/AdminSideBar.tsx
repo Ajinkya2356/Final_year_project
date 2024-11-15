@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PeopleIcon from '@mui/icons-material/People';
 import SpeedIcon from '@mui/icons-material/Speed';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import VerifiedIcon from '@mui/icons-material/Verified';
 interface AdminSideBarProps {
   selectedComponent: string;
   setSelectedComponent: (component: string) => void;
@@ -38,6 +39,15 @@ const AdminSideBar: React.FC<AdminSideBarProps> = ({ selectedComponent, setSelec
         >
           <SpeedIcon className="mr-3" />
           <span>Meter</span>
+        </li>
+
+        <li
+          className={`flex items-center p-4 font-bold cursor-pointer hover:bg-gray-600 ${selectedComponent === 'AdminAnalysis' ? 'bg-gray-700' : ''
+            }`}
+          onClick={() => setSelectedComponent('Inpsections')}
+        >
+          <VerifiedIcon className="mr-3" />
+          <span>Inspections</span>
         </li>
 
         {/* Analysis */}
