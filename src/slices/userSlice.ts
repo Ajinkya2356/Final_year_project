@@ -31,7 +31,7 @@ export const loginUser = createAsyncThunk(
       return response.data.user;
     } catch (error: any) {
       if (error.response && error.response.data) {
-        return rejectWithValue(error.response.data.message);
+        return rejectWithValue(error.response.data.error);
       } else {
         return rejectWithValue(error.message);
       }
@@ -48,7 +48,7 @@ export const loadUser = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       if (error.response && error.response.data) {
-        return rejectWithValue(error.response.data.message);
+        return rejectWithValue(error.response.data.error);
       } else {
         return rejectWithValue(error.message);
       }
@@ -65,7 +65,7 @@ export const logoutUser = createAsyncThunk(
       return;
     } catch (error: any) {
       if (error.response && error.response.data) {
-        return rejectWithValue(error.response.data.message);
+        return rejectWithValue(error.response.data.error);
       } else {
         return rejectWithValue(error.message);
       }

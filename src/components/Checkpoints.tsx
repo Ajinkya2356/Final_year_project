@@ -4,6 +4,7 @@ import FinalStatus from './FinalStatus';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkMeter, createInspection, getMeters, resetInspectionStatus } from '../slices/inspectionSlice';
+import useErrorNotifier from '../hooks/useErrorNotifier';
 
 enum InspectionStatus {
     pass = 'pass',
@@ -109,23 +110,8 @@ const Checkpoints: React.FC = () => {
             }));
         }
     }, [inspectionStatus]);
-    /* if (activeStep == 1) {
-        return (
-            <FinalStatus
-                meterDetails={`ID: ${serialNumber}`}
-                meterImage={trueImageUrl}
-                screenStatuses={[
-                    {
-                        name: "1",
-                        status: "pass"
-                    }
-                ]}
-                accuracy={Math.floor(Math.random() * 100)}
-                onRetry={() => setActiveStep(0)}
-                onNext={() => navigate('/dashboard')}
-            />
-        );
-    } */
+
+    useErrorNotifier({ stateName: 'inspection' })
 
     return (
         <div className="p-4 text-center flex flex-col flex-1 w-full mt-20">

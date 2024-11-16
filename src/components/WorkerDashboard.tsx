@@ -1,9 +1,11 @@
-import React, { useRef, useState } from 'react';
-import Stats from "./WorkerStats";
+import React, { useEffect, useRef, useState } from 'react';
+import WorkerStats from "./WorkerStats";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js';
 import { useNavigate } from "react-router-dom";
-import PreviousInspections from "./PreviousInspections";
 import Webcam from 'react-webcam';
+import useErrorNotifier from '../hooks/useErrorNotifier';
+import { useDispatch } from 'react-redux';
+import { getAnalytics } from '../slices/inspectionSlice';
 
 ChartJS.register(
   CategoryScale,
@@ -18,6 +20,7 @@ ChartJS.register(
 );
 
 const WorkerDashboard = () => {
+  const dispatch = useDispatch()
   const navigate = useNavigate();
   const webcamRef = useRef<Webcam>(null);
   const [isCapturing, setIsCapturing] = useState(true);
@@ -27,6 +30,12 @@ const WorkerDashboard = () => {
     navigate('/checkpoints')
   };
 
+  useEffect(() => {
+    dispatch(getAnalytics())
+  }, [dispatch])
+
+  useErrorNotifier({ stateName: 'inspection' });
+
   return (
     <>
       <div className="min-h-screen bg-gray-900 flex flex-1 flex-col w-full mt-20 ">
@@ -34,10 +43,9 @@ const WorkerDashboard = () => {
           <div className="col-span-12 lg:col-span-8 space-y-4 w-full">
             <div className="col-span-12 lg:col-span-8 w-full">
               <div className="bg-gray-900 p-4 shadow-md rounded-md ">
-                <Stats />
+                <WorkerStats />
               </div>
             </div>
-            <PreviousInspections />
           </div>
 
           <div className="col-span-12 lg:col-span-4 space-y-4 w-full">
