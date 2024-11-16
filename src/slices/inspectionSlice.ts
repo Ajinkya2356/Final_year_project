@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axiosInstance from '../api/axiosInstance';
-import { keyframes } from '@emotion/react';
 
 interface InspectionState {
     inspections: Array<any>;
@@ -8,14 +7,18 @@ interface InspectionState {
     inspectionsLoading: boolean;
     analyticsLoading: boolean;
     error: string | null;
+    meters: Array<any>;
+    loading: boolean;
 }
 
 const initialState: InspectionState = {
     inspections: [],
+    meters: [],
     analytics: null,
     inspectionsLoading: false,
     analyticsLoading: false,
     error: null,
+    loading: false
 };
 
 export const getMyInspections = createAsyncThunk(
@@ -39,7 +42,7 @@ export const getAnalytics = createAsyncThunk(
     'inspections/getAnalytics',
     async ({ meterType, startDate, endDate }: { meterType: string; startDate: Date | null; endDate: Date | null }, { rejectWithValue }) => {
         try {
-            console.log(startDate,endDate)
+            console.log(startDate, endDate)
             const params: any = {};
             if (meterType) params.meter_type = meterType;
             if (startDate) params['start_date'] = new Intl.DateTimeFormat('en-GB').format(startDate);
@@ -50,6 +53,22 @@ export const getAnalytics = createAsyncThunk(
             const url = `/analytics/numbers?${queryString}`;
 
             const response = await axiosInstance.get(url);
+            return response.data;
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message);
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
+export const getMeters = createAsyncThunk(
+    'inspections/getMeterList',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/meterList');
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
@@ -89,6 +108,18 @@ const inspectionSlice = createSlice({
             })
             .addCase(getAnalytics.rejected, (state, action: PayloadAction<any>) => {
                 state.analyticsLoading = false;
+                state.error = action.payload;
+            })
+            .addCase(getMeters.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getMeters.fulfilled, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+                state.meters = action.payload;
+            })
+            .addCase(getMeters.rejected, (state, action: PayloadAction<any>) => {
+                state.loading = false;
                 state.error = action.payload;
             });
     },
