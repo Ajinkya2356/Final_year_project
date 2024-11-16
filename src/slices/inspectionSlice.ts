@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axiosInstance from '../api/axiosInstance';
-import { formatDate } from 'react-datepicker/dist/date_utils';
 
 interface InspectionState {
     inspections: Array<any>;
@@ -12,6 +11,11 @@ interface InspectionState {
     loading: boolean;
     inspectionStatus: string | null;
     checkLoading: boolean;
+    meta: {
+        page: number;
+        total: number;
+        limit: number;
+    }
 }
 
 const initialState: InspectionState = {
@@ -24,6 +28,11 @@ const initialState: InspectionState = {
     loading: false,
     inspectionStatus: null,
     checkLoading: false,
+    meta: {
+        page: 1,
+        total: 0,
+        limit: 10
+    }
 };
 
 export const getMyInspections = createAsyncThunk(
@@ -114,6 +123,22 @@ export const createInspection = createAsyncThunk(
     }
 );
 
+export const getInspections = createAsyncThunk(
+    'inspections/getInspections',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/getInspectionsr?my=true');
+            return response.data;
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message);
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
 const inspectionSlice = createSlice({
     name: 'inspection',
     initialState,
@@ -181,6 +206,19 @@ const inspectionSlice = createSlice({
             })
             .addCase(createInspection.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
+            })
+            .addCase(getInspections.pending, (state) => {
+                state.inspectionsLoading = true;
+                state.error = null;
+            })
+            .addCase(getInspections.fulfilled, (state, action: PayloadAction<any>) => {
+                state.inspectionsLoading = false;
+                state.inspections = action.payload.data;
+                state.meta = action.payload.meta;
+            })
+            .addCase(getInspections.rejected, (state, action: PayloadAction<any>) => {
+                state.inspectionsLoading = false;
+                state.error = action.payload;
             })
     },
 });
