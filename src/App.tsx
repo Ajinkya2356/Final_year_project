@@ -9,6 +9,7 @@ import store from './store';
 import AdminDashboard from './components/AdminDashboard';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
+import MyInspections from './components/MyInspections';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/camera" element={<CameraSetup />} />
             <Route path="/checkpoints" element={<Checkpoints />} />
+            <Route path="/myinspections" element={<MyInspections />} />
           </Route>
         </Routes>
       </Router>
