@@ -20,9 +20,9 @@ const PreviousInspections: React.FC = () => {
     };
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
+        return date.toLocaleDateString('en-GB', {
             year: 'numeric',
-            month: 'long',
+            month: 'numeric',
             day: 'numeric',
         });
     };
@@ -55,34 +55,25 @@ const PreviousInspections: React.FC = () => {
                                 <div className="bg-gray-800 p-4 rounded-lg shadow-lg w-full transform transition-transform hover:scale-105 ">
                                     <img
                                         src={inspection?.meter_details?.photo}
-                                        alt={`Meter ${inspection?.meter_details?.serial_no}`}
+                                        alt={`Meter ${inspection?.serial_no}`}
                                         className="w-full h-50 object-cover rounded-t-lg mb-4"
                                     />
                                     <div className="bg-gray-800 rounded-lg transform transition-transform hover:scale-105">
-                                        <div className="text-white mb-4 flex items-center justify-between">
-                                            <span className="font-semibold text-sm">Serial No. : </span>
-                                            <span
-                                                className="font-semibold text-sm"
-                                            >
-                                                {inspection?.meter_details?.serial_no}
-                                            </span>
-                                        </div>
-                                        <div className="text-white mb-4 flex items-center justify-between">
-                                            <span className="font-semibold text-sm">Date:</span>
-                                            <span
-                                                className="font-semibold text-sm"
-                                            >
-                                                {formatDate(inspection?.date)}
-                                            </span>
-                                        </div>
-                                        <div className="text-white mb-4 flex items-center justify-between">
-                                            <span className="font-semibold text-sm">Status :</span>
-                                            <span
-                                                className={`ml-2 px-3 py-1 rounded-full font-bold text-sm ${inspection?.status === "Pass" ? "text-green-400" : "text-red-400"
-                                                    }`}
-                                            >
-                                                {inspection?.status}
-                                            </span>
+                                        <div className='flex justify-between px-2'>
+                                            <div className=' flex-1 text-left'>
+                                                {['Serial No', 'Model', 'Date', 'Status', 'Client'].map((entry, index) => (
+                                                    <div key={index} className="text-white font-semibold text-sm mb-2">{entry}</div>
+                                                ))}
+                                            </div>
+                                            <div className=' flex-1 text-left'>
+                                                <div className="text-white font-semibold text-sm mb-2">{inspection?.serial_no}</div>
+                                                <div className="text-white font-semibold text-sm mb-2">{inspection?.meter_details?.model}</div>
+                                                <div className="text-white font-semibold text-sm mb-2">{formatDate(inspection?.date)}</div>
+                                                <div className={`font-semibold text-sm mb-2 ${inspection?.status === 'pass' ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {inspection?.status.toUpperCase()}
+                                                </div>
+                                                <div className="text-white font-semibold text-sm mb-2">{inspection?.client}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

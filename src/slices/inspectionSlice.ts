@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axiosInstance from '../api/axiosInstance';
+import { formatDate } from 'react-datepicker/dist/date_utils';
 
 interface InspectionState {
     inspections: Array<any>;
@@ -9,6 +10,8 @@ interface InspectionState {
     error: string | null;
     meters: Array<any>;
     loading: boolean;
+    inspectionStatus: string | null;
+    checkLoading: boolean;
 }
 
 const initialState: InspectionState = {
@@ -18,7 +21,9 @@ const initialState: InspectionState = {
     inspectionsLoading: false,
     analyticsLoading: false,
     error: null,
-    loading: false
+    loading: false,
+    inspectionStatus: null,
+    checkLoading: false,
 };
 
 export const getMyInspections = createAsyncThunk(
@@ -80,10 +85,53 @@ export const getMeters = createAsyncThunk(
     }
 );
 
+export const checkMeter = createAsyncThunk(
+    'inspections/checkMeter',
+    async ({ image, master }, { rejectWithValue }) => {
+        try {
+            const form = new FormData();
+            form.append("image", image)
+            form.append("master", master)
+            const response = await axiosInstance.post('/check', form, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            return response.data;
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message);
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
+export const createInspection = createAsyncThunk(
+    'inspections/createInspection',
+    async (result, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post('/inspect', result);
+            return response.data;
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message);
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
 const inspectionSlice = createSlice({
     name: 'inspection',
     initialState,
-    reducers: {},
+    reducers: {
+        resetInspectionStatus(state) {
+            state.inspectionStatus = null;
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(getMyInspections.pending, (state) => {
@@ -121,8 +169,30 @@ const inspectionSlice = createSlice({
             .addCase(getMeters.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
                 state.error = action.payload;
-            });
+            })
+            .addCase(checkMeter.pending, (state) => {
+                state.checkLoading = true;
+                state.error = null;
+            })
+            .addCase(checkMeter.fulfilled, (state, action: PayloadAction<any>) => {
+                state.checkLoading = false;
+                state.inspectionStatus = action.payload;
+            })
+            .addCase(checkMeter.rejected, (state, action: PayloadAction<any>) => {
+                state.checkLoading = false;
+                state.error = action.payload;
+            })
+            .addCase(createInspection.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createInspection.fulfilled, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+            })
+            .addCase(createInspection.rejected, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+            })
     },
 });
-
+export const { resetInspectionStatus } = inspectionSlice.actions;
 export default inspectionSlice.reducer;
