@@ -4,6 +4,7 @@ import MeterCrud from './MeterCrud';
 import AdminSideBar from './AdminSideBar';
 import InspectionCrud from './InspectionCrud';
 import RoutineCrud from './RoutineCrud';
+import useErrorNotifier from '../hooks/useErrorNotifier';
 
 const AdminDashboard: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<string>('WorkerCrud');
@@ -24,7 +25,7 @@ const AdminDashboard: React.FC = () => {
         return <WorkerCrud tab={'get'} />;
     }
   };
-
+  useErrorNotifier({ stateName: 'admin' });
   return (
     <div className="flex h-screen w-screen mt-20">
       <AdminSideBar selectedComponent={selectedComponent} setSelectedComponent={setSelectedComponent} />

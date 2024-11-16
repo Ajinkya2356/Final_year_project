@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../slices/userSlice';
 import { useNavigate } from 'react-router-dom';
+import useErrorNotifier from '../hooks/useErrorNotifier';
 interface LoginForm {
     reg_no: string;
     password: string;
@@ -25,6 +26,7 @@ const Login: React.FC = () => {
         event.preventDefault();
         dispatch(loginUser(form));
     };
+    useErrorNotifier({ stateName: 'user' });
     return (
         <div className="flex min-h-screen flex-col justify-center items-center bg-gray-900">
             <div className="sm:mx-auto sm:w-full sm:max-w-sm ">

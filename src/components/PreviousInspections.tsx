@@ -1,11 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getMyInspections } from '../slices/inspectionSlice';
 import CircularProgress from '@mui/material/CircularProgress';
 
 
 const PreviousInspections: React.FC = () => {
-    const dispatch = useDispatch();
     const { inspections, inspectionsLoading } = useSelector((state: any) => state.inspection);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const scrollLeft = () => {
@@ -26,9 +24,7 @@ const PreviousInspections: React.FC = () => {
             day: 'numeric',
         });
     };
-    useEffect(() => {
-        dispatch(getMyInspections());
-    }, [dispatch])
+
     if (inspectionsLoading) {
         return (
             <div className="flex justify-center items-center h-full">
@@ -50,7 +46,7 @@ const PreviousInspections: React.FC = () => {
                 <div ref={scrollContainerRef} className="flex mx-10 p-4 
                 overflow-x-hidden overflow-x-auto whitespace-nowrap ">
                     {
-                        inspections.length > 0 ? (inspections.map((inspection) => (
+                        (inspections.map((inspection) => (
                             <div key={inspection.id} className="w-56 mx-4 p-2">
                                 <div className="bg-gray-800 p-4 rounded-lg shadow-lg w-full transform transition-transform hover:scale-105 ">
                                     <img
@@ -79,7 +75,7 @@ const PreviousInspections: React.FC = () => {
                                 </div>
                             </div>
 
-                        ))) : <p>No Inspections Found</p>
+                        )))
                     }
                 </div>
                 <button

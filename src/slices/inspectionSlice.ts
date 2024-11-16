@@ -37,20 +37,26 @@ const initialState: InspectionState = {
 
 export const getMyInspections = createAsyncThunk(
     'inspections/getMyInspections',
-    async (_, { rejectWithValue }) => {
+    async ({ key, value, startDate, endDate }, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get('/getInspections');
-            return response.data.data;
+            let url = `/getInspections?my=true`;
+            if (key && value) {
+                url += `&${key}=${value}`
+            }
+            if (startDate && endDate) {
+                url += `&startDate=${startDate}&endDate=${endDate}`
+            }
+            const response = await axiosInstance.get(url);
+            return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
-                return rejectWithValue(error.response.data.message);
+                return rejectWithValue(error.response.data.error);
             } else {
                 return rejectWithValue(error.message);
             }
         }
     }
 );
-
 
 export const getAnalytics = createAsyncThunk(
     'inspections/getAnalytics',
@@ -60,7 +66,7 @@ export const getAnalytics = createAsyncThunk(
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
-                return rejectWithValue(error.response.data.message);
+                return rejectWithValue(error.response.data.error);
             } else {
                 return rejectWithValue(error.message);
             }
@@ -76,7 +82,7 @@ export const getMeters = createAsyncThunk(
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
-                return rejectWithValue(error.response.data.message);
+                return rejectWithValue(error.response.data.error);
             } else {
                 return rejectWithValue(error.message);
             }
@@ -99,7 +105,7 @@ export const checkMeter = createAsyncThunk(
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
-                return rejectWithValue(error.response.data.message);
+                return rejectWithValue(error.response.data.error);
             } else {
                 return rejectWithValue(error.message);
             }
@@ -115,7 +121,7 @@ export const createInspection = createAsyncThunk(
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
-                return rejectWithValue(error.response.data.message);
+                return rejectWithValue(error.response.data.error);
             } else {
                 return rejectWithValue(error.message);
             }
@@ -127,11 +133,11 @@ export const getInspections = createAsyncThunk(
     'inspections/getInspections',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get('/getInspectionsr?my=true');
+            const response = await axiosInstance.get('/getInspections');
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
-                return rejectWithValue(error.response.data.message);
+                return rejectWithValue(error.response.data.error);
             } else {
                 return rejectWithValue(error.message);
             }
@@ -145,6 +151,9 @@ const inspectionSlice = createSlice({
     reducers: {
         resetInspectionStatus(state) {
             state.inspectionStatus = null;
+        },
+        clearErrors(state) {
+            state.error = null;
         }
     },
     extraReducers: (builder) => {
@@ -153,9 +162,10 @@ const inspectionSlice = createSlice({
                 state.inspectionsLoading = true;
                 state.error = null;
             })
-            .addCase(getMyInspections.fulfilled, (state, action: PayloadAction<Array<any>>) => {
+            .addCase(getMyInspections.fulfilled, (state, action: PayloadAction<any>) => {
                 state.inspectionsLoading = false;
-                state.inspections = action.payload;
+                state.inspections = action.payload.data;
+                state.meta = action.payload.meta;
             })
             .addCase(getMyInspections.rejected, (state, action: PayloadAction<any>) => {
                 state.inspectionsLoading = false;
@@ -206,6 +216,7 @@ const inspectionSlice = createSlice({
             })
             .addCase(createInspection.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
+                state.error = action.payload;
             })
             .addCase(getInspections.pending, (state) => {
                 state.inspectionsLoading = true;
@@ -219,8 +230,9 @@ const inspectionSlice = createSlice({
             .addCase(getInspections.rejected, (state, action: PayloadAction<any>) => {
                 state.inspectionsLoading = false;
                 state.error = action.payload;
-            })
+            });
     },
 });
-export const { resetInspectionStatus } = inspectionSlice.actions;
+
+export const { resetInspectionStatus, clearErrors } = inspectionSlice.actions;
 export default inspectionSlice.reducer;

@@ -51,7 +51,7 @@ export const fetchWorkers = createAsyncThunk<FetchWorkersParams, { rejectValue: 
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
-                return rejectWithValue(error.response.data.message);
+                return rejectWithValue(error.response.data.error);
             } else {
                 return rejectWithValue(error.message);
             }
@@ -69,7 +69,7 @@ export const addWorker = createAsyncThunk('admin/addWorker', async (worker, { re
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }
@@ -86,7 +86,7 @@ export const updateWorker = createAsyncThunk('admin/updateWorker', async ({ id, 
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }
@@ -99,7 +99,7 @@ export const deleteWorker = createAsyncThunk('admin/deleteWorker', async (id, { 
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }
@@ -116,7 +116,7 @@ export const getInspections = createAsyncThunk('admin/getInspections', async (pa
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }
@@ -129,7 +129,7 @@ export const deleteInspection = createAsyncThunk('admin/deleteInspection', async
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }
@@ -146,7 +146,7 @@ export const getRoutines = createAsyncThunk('admin/getRoutines', async (params, 
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }
@@ -163,7 +163,7 @@ export const getMeters = createAsyncThunk('admin/getMeters', async (params, { re
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }
@@ -180,7 +180,7 @@ export const addMeter = createAsyncThunk('admin/addMeter', async (meter, { rejec
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }
@@ -197,7 +197,7 @@ export const updateExistMeter = createAsyncThunk('admin/updateMeter', async ({ i
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }
@@ -210,7 +210,7 @@ export const deleteMeter = createAsyncThunk('admin/deleteMeter', async (id, { re
         return response.data;
     } catch (error: any) {
         if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.message);
+            return rejectWithValue(error.response.data.error);
         } else {
             return rejectWithValue(error.message);
         }

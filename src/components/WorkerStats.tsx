@@ -1,16 +1,9 @@
-import { useEffect, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import { useDispatch, useSelector } from "react-redux";
-import { getAnalytics } from "../slices/inspectionSlice";
 import CountUp from "react-countup";
 
 const WorkerStats: React.FC = () => {
-    const dispatch = useDispatch();
     const { analytics, analyticsLoading, error } = useSelector((state: any) => state.inspection);
-
-    useEffect(() => {
-        dispatch(getAnalytics())
-    }, [dispatch]);
 
     if (analyticsLoading) {
         return <div className="text-white text-center">Loading...</div>
