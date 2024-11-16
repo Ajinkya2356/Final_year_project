@@ -45,19 +45,9 @@ export const getMyInspections = createAsyncThunk(
 
 export const getAnalytics = createAsyncThunk(
     'inspections/getAnalytics',
-    async ({ meterType, startDate, endDate }: { meterType: string; startDate: Date | null; endDate: Date | null }, { rejectWithValue }) => {
+    async (_, { rejectWithValue }) => {
         try {
-            console.log(startDate, endDate)
-            const params: any = {};
-            if (meterType) params.meter_type = meterType;
-            if (startDate) params['start_date'] = new Intl.DateTimeFormat('en-GB').format(startDate);
-            if (endDate) params['end_date'] = new Intl.DateTimeFormat('en-GB').format(endDate);
-
-            const queryString = new URLSearchParams(params).toString();
-            console.log(params)
-            const url = `/analytics/numbers?${queryString}`;
-
-            const response = await axiosInstance.get(url);
+            const response = await axiosInstance.get(`/analytics/numbers`);
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {

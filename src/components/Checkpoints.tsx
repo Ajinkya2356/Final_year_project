@@ -128,10 +128,10 @@ const Checkpoints: React.FC = () => {
     } */
 
     return (
-        <div className="p-4 text-center flex flex-col flex-1 w-full">
+        <div className="p-4 text-center flex flex-col flex-1 w-full mt-20">
 
-            <div className='flex items-center justify-between w-full border'>
-                <div className="flex gap-20 w-5/2 p-5 bg-gray-800 rounded-md justify-between border">
+            <div className='flex items-center justify-between w-full '>
+                <div className="flex gap-20 w-5/2 p-5 bg-gray-800 rounded-md justify-between ">
                     <div className="flex flex-col items-center w-1/2">
                         <h4 className="text-lg mb-2">Preview Screen</h4>
                         {

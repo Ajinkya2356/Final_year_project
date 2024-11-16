@@ -26,7 +26,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen">
+    <div className="flex h-screen w-screen mt-20">
       <AdminSideBar selectedComponent={selectedComponent} setSelectedComponent={setSelectedComponent} />
 
       <div className="flex-grow p-6 ml-60 scroll_none" >

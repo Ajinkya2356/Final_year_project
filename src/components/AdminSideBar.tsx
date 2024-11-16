@@ -11,25 +11,16 @@ interface AdminSideBarProps {
 
 const AdminSideBar: React.FC<AdminSideBarProps> = ({ selectedComponent, setSelectedComponent }) => {
   return (
-    <div className="bg-gray-800 text-white flex flex-col fixed left-0 h-full" style={{ width: '15%', overflowY: 'hidden', margin: '0 auto', }}>
-      <div className="p-6 text-center text-lg font-bold border-b border-gray-700">
-        Admin Dashboard
-      </div>
-      <ul className="flex flex-col flex-grow">
+    <div className="bg-gray-800 text-white flex flex-col fixed left-0 h-full py-2" style={{ width: '15%', overflowY: 'hidden', margin: '0 auto', }}>
+      <ul className="flex flex-col flex-grow gap-2">
         {/* Worker */}
         <li
-          className={`flex flex-col justify-between items-center p-4 font-bold cursor-pointer hover:bg-gray-600 ${selectedComponent === 'WorkerCrud' ? 'bg-gray-700' : ''
+          className={`flex items-center p-4 font-bold cursor-pointer hover:bg-gray-600 ${selectedComponent === 'WorkerCrud' ? 'bg-gray-700' : ''
             }`}
           onClick={() => setSelectedComponent('WorkerCrud')}
         >
-
-          <div className="flex justify-between items-center space-x-3 w-full" >
-            <div className='flex flex-1 gap-2'>
-              <PeopleIcon />
-              <span>Workers</span></div>
-          </div>
-
-
+          <PeopleIcon className='mr-3' />
+          <span>Workers</span>
         </li>
 
         {/* Meter */}
