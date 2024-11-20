@@ -164,7 +164,6 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
   }, [dispatch, paginationModel, searchQuery]);
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', flex: 1, headerAlign: 'center', align: 'center' },
     { field: 'model', headerName: 'Model', width: 100, headerAlign: 'center', align: 'center' },
     {
       field: 'photo',
@@ -180,7 +179,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
     {
       field: 'screen_photos',
       headerName: 'Screen Photos',
-      width: 150,
+      width: 200,
       headerAlign: 'center', align: 'center',
       renderCell: (params) => (
         <div
@@ -199,6 +198,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
       field: 'description',
       headerName: 'Description',
       headerAlign: 'center',
+      flex:1,
       align: 'center',
       renderCell: (params) => (
         <Tooltip title={params.value}>
@@ -212,7 +212,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
     {
       field: 'actions',
       headerName: '',
-      flex: 1,
+      width:200,
       headerAlign: 'center', align: 'center',
       renderCell: (params) => (
         <div className="flex space-x-2 justify-between items-center h-full">

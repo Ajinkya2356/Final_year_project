@@ -161,8 +161,9 @@ const InspectionCrud: React.FC<InspectionCrudProps> = ({ tab }) => {
                 </div>
             ),
         },
-        { field: 'meter_id', headerName: 'Meter ID', flex: 1, resizable: false, headerAlign: 'center', align: 'center' },
-        { field: 'worker_id', headerName: 'Worker ID', flex: 1, resizable: false, headerAlign: 'center', align: 'center', },
+        { field: 'meter_model', headerName: 'Model', flex: 1, resizable: false, headerAlign: 'center', align: 'center' },
+        { field: 'worker_name', headerName: 'Worker Name', flex: 1, resizable: false, headerAlign: 'center', align: 'center', },
+        { field: 'worker_reg_no', headerName: 'Worker Reg_no', flex: 1, resizable: false, headerAlign: 'center', align: 'center', },
         {
             field: 'status',
             headerName: 'Result',
