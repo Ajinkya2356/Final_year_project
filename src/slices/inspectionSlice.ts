@@ -37,14 +37,20 @@ const initialState: InspectionState = {
 
 export const getMyInspections = createAsyncThunk(
     'inspections/getMyInspections',
-    async ({ key, value, startDate, endDate }, { rejectWithValue }) => {
+    async ({ key, value, startDate, endDate, page, limit, result }, { rejectWithValue }) => {
         try {
             let url = `/getInspections?my=true`;
+            if (page && limit) {
+                url += `&page=${page}&limit=${limit}`
+            }
             if (key && value) {
                 url += `&${key}=${value}`
             }
             if (startDate && endDate) {
                 url += `&startDate=${startDate}&endDate=${endDate}`
+            }
+            if (result) {
+                url += `&result=${result}`
             }
             const response = await axiosInstance.get(url);
             return response.data;

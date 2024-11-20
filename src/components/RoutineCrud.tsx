@@ -118,7 +118,8 @@ const RoutineCrud: React.FC<RoutineCrudProps> = ({ tab }) => {
             width: 150,
             align: 'center',
         },
-        { field: 'worker_id', headerName: 'Worker ID', flex: 1, resizable: false, headerAlign: 'center', align: 'center', width: 150, },
+        { field: 'worker_name', headerName: 'Worker Name', flex: 1, resizable: false, headerAlign: 'center', align: 'center', width: 150, },
+        { field: 'worker_reg_no', headerName: 'Worker Reg.no', flex: 1, resizable: false, headerAlign: 'center', align: 'center', width: 150, },
     ];
 
     return (
