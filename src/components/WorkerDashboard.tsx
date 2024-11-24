@@ -53,10 +53,10 @@ const WorkerDashboard = () => {
               <h2 className="text-lg font-semibold mb-2 bg-gray-800 p-2 rounded-md">Live Camera Feed</h2>
               <div className="h-96 bg-gray-300 rounded flex items-center justify-center">
                 {isCapturing ? (
-                  <Webcam
-                    audio={false}
-                    ref={webcamRef}
-                    screenshotFormat="image/jpeg"
+                  <img
+                    src='http://localhost:3000/video_feed'
+                    alt="Live Feed"
+                    crossOrigin="anonymous"
                     className="h-full w-full object-cover"
                   />
                 ) : (
