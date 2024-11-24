@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Webcam from 'react-webcam';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkMeter, createInspection, getMeters, resetInspectionStatus } from '../slices/inspectionSlice';
@@ -27,7 +26,8 @@ const Checkpoints: React.FC = () => {
         meter_id: '',
         client: ''
     });
-    const webcamRef = useRef<Webcam>(null);
+    const videoRef = useRef<HTMLImageElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const [masterImage, setMasterImage] = useState('');
     const navigate = useNavigate();
 
@@ -44,13 +44,21 @@ const Checkpoints: React.FC = () => {
     };
 
     const capture = () => {
-        const imageSrc = webcamRef.current?.getScreenshot();
-        if (imageSrc && masterImage) {
-            const file1 = convertUrlToFile(imageSrc);
-            const file2 = convertUrlToFile(masterImage);
-            dispatch(checkMeter({ image: file1, master: file2 }));
+        if (videoRef.current && canvasRef.current) {
+            const context = canvasRef.current.getContext('2d');
+            if (context) {
+                context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+                canvasRef.current.toBlob((blob) => {
+                    if (blob && masterImage) {
+                        const file1 = new File([blob], 'captured_image.jpg', { type: 'image/jpeg' });
+                        const file2 = new File([blob], 'master_image.jpg', { type: 'image/jpeg' });
+                        dispatch(checkMeter({ image: file1, master: file2 }));
+                    }
+                    const imageSrc = URL.createObjectURL(blob);
+                    setCapturedImage(imageSrc);
+                }, 'image/jpeg');
+            }
         }
-        setCapturedImage(imageSrc);
     };
 
     const retry = () => {
@@ -135,13 +143,15 @@ const Checkpoints: React.FC = () => {
                         {capturedImage ? (
                             <img src={capturedImage} alt="Captured Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
                         ) : (
-                            <Webcam
-                                audio={false}
-                                ref={webcamRef}
-                                screenshotFormat="image/jpeg"
+                            <img
+                                ref={videoRef}
+                                src='http://localhost:3000/video_feed'
+                                alt="Live Feed"
+                                crossOrigin='anonymous'
                                 className="h-96 w-96 mb-4 border border-gray-300 rounded-lg"
                             />
                         )}
+                        <canvas ref={canvasRef} width={640} height={480} style={{ display: 'none' }}></canvas>
                     </div>
                     <div className="flex flex-col items-center w-1/2">
                         <h4 className="text-lg mb-2">Master Image</h4>
