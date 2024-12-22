@@ -39,14 +39,12 @@ interface createMeter {
   model: string;
   description: string;
   photo: File | null;
-  screen_photos: File[];
 }
 
 interface updateMeter {
   model?: string;
   description?: string;
   photo?: File | null;
-  screen_photos?: File[];
 }
 
 const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
@@ -61,14 +59,12 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
     model: '',
     description: '',
     photo: null,
-    screen_photos: []
   });
   const [selectedMeter, setSelectedMeter] = useState<any>(null);
   const [updateMeter, setUpdateMeter] = useState<updateMeter>({
     model: '',
     description: '',
     photo: null,
-    screen_photos: []
   });
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
@@ -86,12 +82,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
 
   const handleInputChange = (event) => {
     const { name, value, files } = event.target;
-    if (name === 'screen_photos' && files) {
-      setCreateMeter({
-        ...createMeter,
-        screen_photos: Array.from(files)
-      });
-    } else if (name === 'photo' && files) {
+    if (name === 'photo' && files) {
       setCreateMeter({
         ...createMeter,
         photo: files[0]
@@ -106,12 +97,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
 
   const handleUpdate = (event) => {
     const { name, value, files } = event.target;
-    if (name === 'screen_photos' && files) {
-      setUpdateMeter({
-        ...updateMeter,
-        screen_photos: Array.from(files)
-      });
-    } else if (name === 'photo' && files) {
+    if (name === 'photo' && files) {
       setUpdateMeter({
         ...updateMeter,
         photo: files[0]
@@ -142,7 +128,6 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
         model: '',
         description: '',
         photo: null,
-        screen_photos: []
       });
     }
     else {
@@ -150,7 +135,6 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
         model: '',
         description: '',
         photo: null,
-        screen_photos: []
       });
     };
   };
@@ -177,28 +161,10 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
       ),
     },
     {
-      field: 'screen_photos',
-      headerName: 'Screen Photos',
-      width: 200,
-      headerAlign: 'center', align: 'center',
-      renderCell: (params) => (
-        <div
-          className="grid gap-2"
-          style={{
-            gridTemplateColumns: `repeat(${Math.min(params.value.length, 3)}, minmax(0, 1fr))`,
-          }}
-        >
-          {params.value.map((photo, index) => (
-            <img key={index} src={photo} alt={`${params.row.model}-${index}`} className="object-cover" />
-          ))}
-        </div>
-      ),
-    },
-    {
       field: 'description',
       headerName: 'Description',
       headerAlign: 'center',
-      flex:1,
+      flex: 1,
       align: 'center',
       renderCell: (params) => (
         <Tooltip title={params.value}>
@@ -212,7 +178,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
     {
       field: 'actions',
       headerName: '',
-      width:200,
+      width: 200,
       headerAlign: 'center', align: 'center',
       renderCell: (params) => (
         <div className="flex space-x-2 justify-between items-center h-full">
@@ -224,7 +190,6 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
                 model: params.row.model,
                 description: params.row.description,
                 photo: params.row.photo,
-                screen_photos: params.row.screen_photos
               });
               setSelectedMeter(params.row);
             }}
@@ -302,11 +267,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
               <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500" onClick={() => {
                 const formData = new FormData();
                 Object.entries(createMeter).forEach(([key, value]) => {
-                  if (key === 'screen_photos') {
-                    value.forEach((file) => {
-                      formData.append(key, file);
-                    });
-                  } else if (key === 'photo') {
+                  if (key === 'photo') {
                     formData.append(key, value);
                   } else {
                     formData.append(key, value);
@@ -334,7 +295,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
                   {Object.entries(updateMeter).map(([key, value]) => {
                     return (
                       <div key={key}>
-                        {(key === 'screen_photos' || key === 'photo') && (
+                        {(key === 'photo') && (
                           <>
                             <label className="flex justify-start text-md font-semibold text-gray-800" htmlFor={key}>
                               Meter Photos
@@ -342,29 +303,16 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
                             {key === 'photo' && (
                               <img src={value} alt={updateMeter.model} className="w-1/2" />
                             )}
-                            {key === 'screen_photos' && (
-                              <div
-                                className="grid gap-2"
-                                style={{
-                                  gridTemplateColumns: `repeat(${Math.min(value.length, 3)}, minmax(0, 1fr))`,
-                                }}
-                              >
-                                {value.map((photo, index) => (
-                                  <img key={index} src={photo} alt={`${updateMeter.model}-${index}`} />
-                                ))}
-                              </div>
-                            )}
                           </>
                         )}
                         <input
                           style={{ backgroundColor: '#1F2937', color: 'white' }}
                           className="border border-gray-300 rounded p-2 mb-2 w-full"
                           name={key}
-                          type={key === 'photo' || key === 'screen_photos' ? 'file' : 'text'}
+                          type={key === 'photo' ? 'file' : 'text'}
                           placeholder={`Meter ${key}`}
-                          defaultValue={key === 'screen_photos' || key === 'photo' ? undefined : value}
-                          multiple={key === 'screen_photos'}
-                          accept={(key === 'screen_photos' || key === 'photo') ? 'image/*' : undefined}
+                          defaultValue={key === 'photo' ? undefined : value}
+                          accept={(key === 'photo') ? 'image/*' : undefined}
                           onChange={handleUpdate}
                         />
                       </div>
@@ -379,11 +327,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
                     Object.entries(updateMeter).forEach(([key, value]) => {
                       if (value === null || value === '') return;
                       if (value !== selectedMeter[key]) {
-                        if (key === 'screen_photos') {
-                          value.forEach((file) => {
-                            formData.append(key, file);
-                          });
-                        } else if (key === 'photo') {
+                        if (key === 'photo') {
                           formData.append(key, value);
                         } else {
                           formData.append(key, value);
@@ -393,7 +337,7 @@ const MeterCrud: React.FC<MeterCrudProps> = ({ tab }) => {
                     dispatch(updateExistMeter({ id: selectedMeter.id, meter: formData }));
                     setActiveTab('get');
                     resetform();
-                  }}>Update Worker</button>
+                  }}>Update Meter</button>
               </div>
             </div>)
         }

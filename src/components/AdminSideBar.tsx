@@ -50,16 +50,6 @@ const AdminSideBar: React.FC<AdminSideBarProps> = ({ selectedComponent, setSelec
           <AlarmOnIcon className="mr-3" />
           <span>Routine</span>
         </li>
-
-        {/* Analysis */}
-        <li
-          className={`flex items-center p-4 font-bold cursor-pointer hover:bg-gray-600 ${selectedComponent === 'AdminAnalysis' ? 'bg-gray-700' : ''
-            }`}
-          onClick={() => setSelectedComponent('RoutineCrud')}
-        >
-          <AssessmentIcon className="mr-3" />
-          <span>Analysis</span>
-        </li>
       </ul>
     </div>
   );

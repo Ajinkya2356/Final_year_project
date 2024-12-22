@@ -5,6 +5,10 @@ import { createTheme } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteInspection, getInspections } from '../slices/adminSlice';
 import DeleteIcon from '@mui/icons-material/Delete';
+import axios from 'axios';
+import fileDownload from 'js-file-download';
+import axiosInstance from '../api/axiosInstance';
+
 const theme = createTheme({
     components: {
         MuiDataGrid: {
@@ -117,6 +121,16 @@ const InspectionCrud: React.FC<InspectionCrudProps> = ({ tab }) => {
         setSelectedRow(null);
     };
 
+    const handleExport = async () => {
+        try {
+            const response = await axiosInstance.get('/excel', {
+                responseType: 'blob',
+            });
+            fileDownload(response.data, 'inspections.xlsx');
+        } catch (error) {
+            console.error('Error exporting inspections:', error);
+        }
+    };
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         if (name === 'serial_no') {
@@ -197,7 +211,7 @@ const InspectionCrud: React.FC<InspectionCrudProps> = ({ tab }) => {
     return (
         <div className="container">
             <h1 className="text-2xl font-bold text-center mb-6">Inspection Management</h1>
-
+            <button className='bg-green-500 font-bold float-right mx-3' onClick={handleExport}>Export</button>
             {activeTab === 'get' && (
                 <div className="tab-content">
                     <div className="flex flex-row justify-around mb-4 gap-5">

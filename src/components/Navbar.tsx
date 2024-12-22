@@ -15,7 +15,7 @@ const Navbar: React.FC = () => {
         <div className="fixed top-0 w-full">
             <nav className="bg-gray-800 shadow-md p-4 flex justify-between items-center w-full ">
                 <div className='flex items-center gap-5'>
-                    <div className="text-xl font-bold">Dashboard</div>
+                    <img src="../../logo.jpg" alt="Logo" className="w-12 h-12 rounded-full" />
 
                     {isAuthenticated && userData?.user_role === 'worker' && (
                         <div>

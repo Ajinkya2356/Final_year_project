@@ -28,13 +28,14 @@ const Checkpoints: React.FC = () => {
     const captureRef = useRef<HTMLButtonElement>(null);
     const capture = () => {
         dispatch(checkMeter({ master: masterImage }))
+        dispatch(createInspection(inspectionForm))
     };
 
     const retry = () => {
         dispatch(changeCapture())
         setInspectionForm({
             serial_no: '',
-            status: '',
+            status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
             meter_id: inspectionForm.meter_id,
             client: inspectionForm.client
         });
@@ -54,7 +55,7 @@ const Checkpoints: React.FC = () => {
         dispatch(createInspection(inspectionForm));
         setInspectionForm({
             serial_no: '',
-            status: '',
+            status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
             meter_id: inspectionForm.meter_id,
             client: inspectionForm.client
         });
@@ -66,7 +67,7 @@ const Checkpoints: React.FC = () => {
         dispatch(createInspection(inspectionForm));
         setInspectionForm({
             serial_no: '',
-            status: '',
+            status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
             meter_id: '',
             client: ''
         });
@@ -96,7 +97,7 @@ const Checkpoints: React.FC = () => {
         if (inspectionStatus) {
             setInspectionForm((prevForm) => ({
                 ...prevForm,
-                status: inspectionStatus === 'Pass' ? InspectionStatus.pass : InspectionStatus.fail,
+                status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
             }));
         }
     }, [inspectionStatus, capturedImage, masterImage]);
@@ -130,8 +131,8 @@ const Checkpoints: React.FC = () => {
                     <div className="flex flex-col gap-10 mx-5">
                         <div className='flex flex-col bg-gray-800 p-2 rounded-md gap-2'>
                             {inspectionStatus ? (
-                                <div className={`flex justify-center rounded-md ${inspectionStatus === 'Pass' ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-red-400 to-red-600'}`}>
-                                    <p className={`text-semibold text-xl`}>{inspectionStatus}</p>
+                                <div className={`flex justify-center rounded-md ${inspectionStatus === 'pass' ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-red-400 to-red-600'}`}>
+                                    <p className={`text-semibold text-xl`}>{inspectionStatus.toUpperCase()}</p>
                                 </div>
                             ) : checkLoading ? (<p>Loading...</p>) : null}
 
@@ -174,6 +175,7 @@ const Checkpoints: React.FC = () => {
                         </div>
                         <div className='flex justify-between'>
                             <button
+                                type='submit'
                                 onClick={handleCaptureRetry}
                                 className={`bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300 w-full ${!capturedImage ? '' : 'bg-red-500 hover:bg-red-600'}`}
 
