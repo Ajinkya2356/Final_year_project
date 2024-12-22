@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { checkMeter, createInspection, getMeters, resetInspectionStatus } from '../slices/inspectionSlice';
+import { checkMeter, createInspection, getMeters, resetInspectionStatus, changeCapture, changeMasterImage } from '../slices/inspectionSlice';
 import useErrorNotifier from '../hooks/useErrorNotifier';
 
 enum InspectionStatus {
@@ -18,51 +17,21 @@ interface Inspection {
 
 const Checkpoints: React.FC = () => {
     const dispatch = useDispatch();
-    const { meters, loading, checkLoading, inspectionStatus } = useSelector((state) => state.inspection);
-    const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    const { meters, loading, checkLoading, inspectionStatus, capturedImage, masterImage } = useSelector((state) => state.inspection);
     const [inspectionForm, setInspectionForm] = useState<Inspection>({
         serial_no: '',
         status: '',
         meter_id: '',
         client: ''
     });
-    const videoRef = useRef<HTMLImageElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [masterImage, setMasterImage] = useState('');
-    const navigate = useNavigate();
-
-    const convertUrlToFile = (imageSrc: string) => {
-        const byteString = atob(imageSrc.split(',')[1]);
-        const mimeString = imageSrc.split(',')[0].split(':')[1].split(';')[0];
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i++) {
-            ia[i] = byteString.charCodeAt(i);
-        }
-        const blob = new Blob([ab], { type: mimeString });
-        return new File([blob], 'captured_image.jpg', { type: mimeString });
-    };
-
+    const masterRef = useRef<HTMLImageElement>(null);
+    const captureRef = useRef<HTMLButtonElement>(null);
     const capture = () => {
-        if (videoRef.current && canvasRef.current) {
-            const context = canvasRef.current.getContext('2d');
-            if (context) {
-                context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-                canvasRef.current.toBlob((blob) => {
-                    if (blob && masterImage) {
-                        const file1 = new File([blob], 'captured_image.jpg', { type: 'image/jpeg' });
-                        const file2 = new File([blob], 'master_image.jpg', { type: 'image/jpeg' });
-                        dispatch(checkMeter({ image: file1, master: file2 }));
-                    }
-                    const imageSrc = URL.createObjectURL(blob);
-                    setCapturedImage(imageSrc);
-                }, 'image/jpeg');
-            }
-        }
+        dispatch(checkMeter({ master: masterImage }))
     };
 
     const retry = () => {
-        setCapturedImage(null);
+        dispatch(changeCapture())
         setInspectionForm({
             serial_no: '',
             status: '',
@@ -81,8 +50,8 @@ const Checkpoints: React.FC = () => {
     };
 
     const handleContinue = () => {
+        dispatch(changeCapture())
         dispatch(createInspection(inspectionForm));
-        setCapturedImage(null);
         setInspectionForm({
             serial_no: '',
             status: '',
@@ -93,15 +62,15 @@ const Checkpoints: React.FC = () => {
     };
 
     const handleSubmit = () => {
+        dispatch(changeCapture())
         dispatch(createInspection(inspectionForm));
-        setCapturedImage(null);
         setInspectionForm({
             serial_no: '',
             status: '',
             meter_id: '',
             client: ''
         });
-        setMasterImage('');
+        dispatch(changeMasterImage());
         dispatch(resetInspectionStatus());
     };
 
@@ -110,7 +79,7 @@ const Checkpoints: React.FC = () => {
         if (name === 'meter_id') {
             const selectedMeter = meters.find((meter: any) => meter.id === value);
             if (selectedMeter) {
-                setMasterImage(selectedMeter.image);
+                dispatch(changeMasterImage(selectedMeter.image))
             }
         }
         setInspectionForm({
@@ -130,7 +99,7 @@ const Checkpoints: React.FC = () => {
                 status: inspectionStatus === 'Pass' ? InspectionStatus.pass : InspectionStatus.fail,
             }));
         }
-    }, [inspectionStatus]);
+    }, [inspectionStatus, capturedImage, masterImage]);
 
     useErrorNotifier({ stateName: 'inspection' });
 
@@ -144,18 +113,17 @@ const Checkpoints: React.FC = () => {
                             <img src={capturedImage} alt="Captured Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
                         ) : (
                             <img
-                                ref={videoRef}
+                                ref={captureRef}
                                 src='http://localhost:3000/video_feed'
                                 alt="Live Feed"
                                 crossOrigin='anonymous'
                                 className="h-96 w-96 mb-4 border border-gray-300 rounded-lg"
                             />
                         )}
-                        <canvas ref={canvasRef} width={640} height={480} style={{ display: 'none' }}></canvas>
                     </div>
                     <div className="flex flex-col items-center w-1/2">
                         <h4 className="text-lg mb-2">Master Image</h4>
-                        <img src={masterImage} alt="Master Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
+                        <img ref={masterRef} src={masterImage} alt="Master Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
                     </div>
                 </div>
                 <div className='flex flex-col gap-20 pt-3 pb-3 flex-1'>
@@ -163,20 +131,10 @@ const Checkpoints: React.FC = () => {
                         <div className='flex flex-col bg-gray-800 p-2 rounded-md gap-2'>
                             {inspectionStatus ? (
                                 <div className={`flex justify-center rounded-md ${inspectionStatus === 'Pass' ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-red-400 to-red-600'}`}>
-                                    <p className={`text-semibold text-xl`}>{inspectionStatus.toUpperCase()}</p>
+                                    <p className={`text-semibold text-xl`}>{inspectionStatus}</p>
                                 </div>
                             ) : checkLoading ? (<p>Loading...</p>) : null}
-                            <label htmlFor="serialNumber" className="flex justify-start text-white text-md">Serial Number</label>
-                            <input
-                                id="serialNumber"
-                                type="text"
-                                name="serial_no"
-                                value={inspectionForm.serial_no}
-                                onChange={handleInputChange}
-                                className="p-2 rounded-md text-white"
-                                placeholder="Enter Serial Number"
-                                required
-                            />
+
                             <label htmlFor="meterType" className="flex justify-start text-white text-md">Meter</label>
                             <select
                                 id="meterType"
@@ -191,6 +149,17 @@ const Checkpoints: React.FC = () => {
                                     <option key={meter.id} value={meter.id}>{meter.model}</option>
                                 ))}
                             </select>
+                            <label htmlFor="serialNumber" className="flex justify-start text-white text-md">Serial Number</label>
+                            <input
+                                id="serialNumber"
+                                type="text"
+                                name="serial_no"
+                                value={inspectionForm.serial_no}
+                                onChange={handleInputChange}
+                                className="p-2 rounded-md text-white"
+                                placeholder="Enter Serial Number"
+                                required
+                            />
                             <label htmlFor="client" className="flex justify-start text-white text-md">Client</label>
                             <input
                                 id="client"
@@ -207,6 +176,7 @@ const Checkpoints: React.FC = () => {
                             <button
                                 onClick={handleCaptureRetry}
                                 className={`bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300 w-full ${!capturedImage ? '' : 'bg-red-500 hover:bg-red-600'}`}
+
                             >
                                 {capturedImage ? 'Retry' : 'Capture'}
                             </button>
