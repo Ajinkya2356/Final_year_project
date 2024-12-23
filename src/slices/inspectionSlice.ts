@@ -170,6 +170,9 @@ const inspectionSlice = createSlice({
         },
         changeMasterImage(state, action) {
             state.masterImage = action.payload ? action.payload : null;
+        },
+        changeDiff(state, action) {
+            state.diffImage = action.payload ? action.payload : null;
         }
     },
     extraReducers: (builder) => {
@@ -252,5 +255,5 @@ const inspectionSlice = createSlice({
     },
 });
 
-export const { resetInspectionStatus, clearErrors, changeCapture, changeMasterImage } = inspectionSlice.actions;
+export const { resetInspectionStatus, clearErrors, changeCapture, changeMasterImage,changeDiff } = inspectionSlice.actions;
 export default inspectionSlice.reducer;

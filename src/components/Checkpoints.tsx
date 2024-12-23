@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { checkMeter, createInspection, getMeters, resetInspectionStatus, changeCapture, changeMasterImage } from '../slices/inspectionSlice';
+import { checkMeter, createInspection, getMeters, resetInspectionStatus, changeCapture, changeMasterImage, changeDiff } from '../slices/inspectionSlice';
 import useErrorNotifier from '../hooks/useErrorNotifier';
 
 enum InspectionStatus {
@@ -38,6 +38,7 @@ const Checkpoints: React.FC = () => {
 
     const retry = () => {
         dispatch(changeCapture())
+        dispatch(changeDiff())
         setInspectionForm({
             serial_no: inspectionForm.serial_no,
             status: '',
@@ -57,6 +58,7 @@ const Checkpoints: React.FC = () => {
 
     const handleContinue = () => {
         dispatch(changeCapture());
+        dispatch(changeDiff())
         setInspectionForm(prev => ({
             ...prev,
             serial_no: '',
@@ -67,6 +69,7 @@ const Checkpoints: React.FC = () => {
 
     const handleSubmit = () => {
         dispatch(changeCapture());
+        dispatch(changeDiff())
         setInspectionForm({
             serial_no: '',
             status: '',

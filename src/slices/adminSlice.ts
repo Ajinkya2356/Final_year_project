@@ -218,24 +218,23 @@ export const deleteMeter = createAsyncThunk('admin/deleteMeter', async (id, { re
     }
 })
 
-export const sendEmail = createAsyncThunk('admin/sendEmail', async (list, { rejectWithValue }) => {
-    try {
-        const receipant_list = new FormData();
-        receipant_list.append('receipant_list', list);
-        const response = await axiosInstance.post(`/send_email`, receipant_list, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
-        return response.data;
-    } catch (error: any) {
-        if (error.response && error.response.data) {
-            return rejectWithValue(error.response.data.error);
-        } else {
-            return rejectWithValue(error.message);
+export const sendEmail = createAsyncThunk(
+    'admin/sendEmail',
+    async (recipients, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post('/send_email', {
+                "receipant_emails": recipients
+            });
+            return response.data;
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.error);
+            } else {
+                return rejectWithValue(error.message);
+            }
         }
     }
-})
+);
 
 
 const adminSlice = createSlice({

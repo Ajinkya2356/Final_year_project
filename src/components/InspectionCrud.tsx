@@ -98,8 +98,8 @@ const InspectionCrud: React.FC<InspectionCrudProps> = ({ tab }) => {
                 startDate = null;
                 endDate = null;
         }
-        dispatch(getInspections({ startDate, endDate, serial_no: searchSerialNo, client: searchClient, result: resultFilter }));
-    }, [dispatch, dateFilter, customDateRange, searchSerialNo, searchClient, resultFilter]);
+        dispatch(getInspections({ startDate, endDate, serial_no: searchSerialNo, client: searchClient, result: resultFilter, page: paginationModel.page + 1, limit: paginationModel.pageSize }));
+    }, [dispatch, dateFilter, customDateRange, searchSerialNo, searchClient, resultFilter, paginationModel]);
 
     const handleDeleteInspection = (_id: string) => {
         setIsDeleteConfirmOpen(true);
