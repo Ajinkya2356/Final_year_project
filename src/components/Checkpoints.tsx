@@ -28,14 +28,14 @@ const Checkpoints: React.FC = () => {
     const captureRef = useRef<HTMLButtonElement>(null);
     const capture = () => {
         dispatch(checkMeter({ master: masterImage }))
-        dispatch(createInspection(inspectionForm))
     };
+
 
     const retry = () => {
         dispatch(changeCapture())
         setInspectionForm({
-            serial_no: '',
-            status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
+            serial_no: inspectionForm.serial_no,
+            status: '',
             meter_id: inspectionForm.meter_id,
             client: inspectionForm.client
         });
@@ -51,23 +51,20 @@ const Checkpoints: React.FC = () => {
     };
 
     const handleContinue = () => {
-        dispatch(changeCapture())
-        dispatch(createInspection(inspectionForm));
-        setInspectionForm({
+        dispatch(changeCapture());
+        setInspectionForm(prev => ({
+            ...prev,
             serial_no: '',
-            status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
-            meter_id: inspectionForm.meter_id,
-            client: inspectionForm.client
-        });
+            status: '',
+        }));
         dispatch(resetInspectionStatus());
     };
 
     const handleSubmit = () => {
-        dispatch(changeCapture())
-        dispatch(createInspection(inspectionForm));
+        dispatch(changeCapture());
         setInspectionForm({
             serial_no: '',
-            status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
+            status: '',
             meter_id: '',
             client: ''
         });
@@ -92,15 +89,20 @@ const Checkpoints: React.FC = () => {
     useEffect(() => {
         dispatch(getMeters());
     }, [dispatch]);
-
     useEffect(() => {
-        if (inspectionStatus) {
-            setInspectionForm((prevForm) => ({
-                ...prevForm,
+        if (inspectionStatus === 'pass' || inspectionStatus === 'fail') {
+            setInspectionForm(prev => ({
+                ...prev,
+                status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail
+            }));
+            // Move createInspection dispatch here if needed
+            dispatch(createInspection({
+                ...inspectionForm,
                 status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
             }));
         }
-    }, [inspectionStatus, capturedImage, masterImage]);
+    }, [inspectionStatus]);
+    console.log(inspectionForm)
 
     useErrorNotifier({ stateName: 'inspection' });
 
@@ -177,10 +179,17 @@ const Checkpoints: React.FC = () => {
                             <button
                                 type='submit'
                                 onClick={handleCaptureRetry}
-                                className={`bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300 w-full ${!capturedImage ? '' : 'bg-red-500 hover:bg-red-600'}`}
+                                disabled={checkLoading}
+                                className={`text-white py-2 px-4 rounded transition duration-300 w-full 
+                                    ${checkLoading
+                                        ? 'bg-gray-300 cursor-not-allowed'
+                                        : !capturedImage
+                                            ? 'bg-blue-500 hover:bg-blue-600'
+                                            : 'bg-red-500 hover:bg-red-600'
+                                    }`}
 
                             >
-                                {capturedImage ? 'Retry' : 'Capture'}
+                                {capturedImage ? 'Retry' : checkLoading ? 'Processing...' : 'Capture'}
                             </button>
                         </div>
                         <div className='flex justify-between gap-10'>

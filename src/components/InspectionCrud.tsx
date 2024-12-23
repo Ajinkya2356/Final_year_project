@@ -126,7 +126,8 @@ const InspectionCrud: React.FC<InspectionCrudProps> = ({ tab }) => {
             const response = await axiosInstance.get('/excel', {
                 responseType: 'blob',
             });
-            fileDownload(response.data, 'inspections.xlsx');
+            const today = new Date().toDateString().replace(/\s/g, '_');
+            fileDownload(response.data, `${today}_results.xlsx`);
         } catch (error) {
             console.error('Error exporting inspections:', error);
         }
