@@ -14,6 +14,7 @@ interface InspectionState {
     checkLoading: boolean;
     capturedImage: null;
     masterImage: null;
+    diffImage: null;
     meta: {
         page: number;
         total: number;
@@ -33,6 +34,7 @@ const initialState: InspectionState = {
     checkLoading: false,
     capturedImage: null,
     masterImage: null,
+    diffImage: null,
     meta: {
         page: 1,
         total: 0,
@@ -103,10 +105,8 @@ export const getMeters = createAsyncThunk(
 
 export const checkMeter = createAsyncThunk(
     'inspections/checkMeter',
-    async ({ master }, { rejectWithValue }) => {
+    async (form, { rejectWithValue }) => {
         try {
-            const form = new FormData();
-            form.append("master", master)
             const response = await axios.post('http://localhost:3000/capture', form, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
@@ -219,6 +219,7 @@ const inspectionSlice = createSlice({
                 state.checkLoading = false;
                 state.inspectionStatus = action.payload.res;
                 state.capturedImage = action.payload.image;
+                state.diffImage = action.payload.diff;
             })
             .addCase(checkMeter.rejected, (state, action: PayloadAction<any>) => {
                 state.checkLoading = false;

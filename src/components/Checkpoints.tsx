@@ -17,7 +17,7 @@ interface Inspection {
 
 const Checkpoints: React.FC = () => {
     const dispatch = useDispatch();
-    const { meters, loading, checkLoading, inspectionStatus, capturedImage, masterImage } = useSelector((state) => state.inspection);
+    const { meters, loading, checkLoading, inspectionStatus, capturedImage, masterImage, diffImage } = useSelector((state) => state.inspection);
     const [inspectionForm, setInspectionForm] = useState<Inspection>({
         serial_no: '',
         status: '',
@@ -27,7 +27,12 @@ const Checkpoints: React.FC = () => {
     const masterRef = useRef<HTMLImageElement>(null);
     const captureRef = useRef<HTMLButtonElement>(null);
     const capture = () => {
-        dispatch(checkMeter({ master: masterImage }))
+        const check = new FormData();
+        check.append('master', masterImage);
+        check.append('serial_no', inspectionForm.serial_no);
+        const model_type = meters.find((meter: any) => meter.id === inspectionForm.meter_id).model;
+        check.append('model_type', model_type);
+        dispatch(checkMeter(check));
     };
 
 
@@ -109,9 +114,13 @@ const Checkpoints: React.FC = () => {
     return (
         <div className="p-4 text-center flex flex-col flex-1 w-full mt-20">
             <div className='flex items-center justify-between w-full'>
-                <div className="flex gap-20 w-5/2 p-5 bg-gray-800 rounded-md justify-between">
+                <div className="flex gap-5 w-5/2 p-5 bg-gray-800 rounded-md justify-between">
                     <div className="flex flex-col items-center w-1/2">
-                        <h4 className="text-lg mb-2">Preview Screen</h4>
+                        <h4 className="text-lg mb-2">Master Image</h4>
+                        <img ref={masterRef} src={masterImage} alt="Master Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
+                    </div>
+                    <div className="flex flex-col items-center w-1/2">
+                        <h4 className="text-lg mb-2">Captured Image</h4>
                         {capturedImage ? (
                             <img src={capturedImage} alt="Captured Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
                         ) : (
@@ -124,10 +133,14 @@ const Checkpoints: React.FC = () => {
                             />
                         )}
                     </div>
-                    <div className="flex flex-col items-center w-1/2">
-                        <h4 className="text-lg mb-2">Master Image</h4>
-                        <img ref={masterRef} src={masterImage} alt="Master Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
-                    </div>
+                    {
+                        diffImage && (
+                            <div className="flex flex-col items-center w-1/2">
+                                <h4 className="text-lg mb-2">Faults</h4>
+                                <img src={diffImage} alt="Master Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
+                            </div>
+                        )
+                    }
                 </div>
                 <div className='flex flex-col gap-20 pt-3 pb-3 flex-1'>
                     <div className="flex flex-col gap-10 mx-5">
