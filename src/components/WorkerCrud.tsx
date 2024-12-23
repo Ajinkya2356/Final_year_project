@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchWorkers, addWorker as addWorkerAction, deleteWorker, updateWorker } from '../slices/adminSlice';
+import { formatDate } from 'react-datepicker/dist/date_utils';
 
 
 
@@ -38,6 +39,7 @@ interface createWorker {
   password: string;
   photo: File | null;
   user_role?: string;
+  email?: string;
 }
 
 interface WorkerCrudProps {
@@ -52,6 +54,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     reg_no: '',
     password: '',
     photo: null,
+    email: '',
   });
   const [activeTab, setActiveTab] = useState<string>(tab);
   const [searchRegNo, setSearchRegNo] = useState<string>('');
@@ -91,6 +94,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
     form.append('name', createForm.name);
     form.append('reg_no', createForm.reg_no);
     form.append('password', createForm.password);
+    form.append('email', createForm.email);
     form.append('photo', createForm.photo as Blob);
     dispatch(addWorkerAction(form));
     setPaginationModel({
@@ -155,6 +159,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
       reg_no: '',
       password: '',
       photo: null,
+      email: '',
     });
   };
 
@@ -194,7 +199,8 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
                 reg_no: params.row.reg_no as string,
                 password: '',
                 photo: params.row.photo,
-                user_role: params.row.user_role
+                user_role: params.row.user_role,
+                email: params.row.email,
               });
               setIsUpdating(true);
               setSelectedRow(params.row.id);
@@ -231,7 +237,10 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
           <div className="bg-white p-6 rounded shadow-lg relative w-1/3">
             <button
               className="absolute bg-white top-2 right-2 text-gray-700 hover:text-gray-500"
-              onClick={() => setActiveTab('get')}
+              onClick={() => {
+                setActiveTab('get');
+                resetForm();
+              }}
             >
               ✕
             </button>
@@ -239,6 +248,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="name" placeholder="Name" value={createForm.name} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="reg_no" placeholder="Registration No" value={createForm.reg_no} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="password" type="password" placeholder="Password" value={createForm.password} onChange={handleInputChange} required />
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="email" placeholder="Email" value={createForm.email} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="photo" type="file" accept="image/*" onChange={handleInputChange} required />
             <button className="bg-teal-600 text-white py-2 rounded hover:bg-teal-500" onClick={addWorker}>Add Worker</button>
           </div>
@@ -250,7 +260,11 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
           <div className="bg-white p-6 rounded shadow-lg relative w-1/3">
             <button
               className="absolute bg-white top-2 right-2 text-gray-700 hover:text-gray-500"
-              onClick={() => setIsUpdating(false)}
+              onClick={() => {
+                setIsUpdating(false);
+                setSelectedRow(null);
+                resetForm();
+              }}
             >
               ✕
             </button>
@@ -258,6 +272,7 @@ const WorkerCrud: React.FC<WorkerCrudProps> = ({ tab }) => {
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="name" placeholder="Name" value={createForm.name} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="reg_no" placeholder="Registration No" value={createForm.reg_no} onChange={handleInputChange} required />
             <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="password" type="password" placeholder="Password" value={createForm.password} onChange={handleInputChange} required />
+            <input className="border border-gray-300 rounded p-2 mb-2 w-full" style={{ backgroundColor: '#1F2937', color: 'white' }} name="email" placeholder="Email" value={createForm.email} onChange={handleInputChange} required />
             <select
               className="border border-gray-300 rounded p-2 mb-2 w-full bg-gray-900 text-white"
               name="user_role"

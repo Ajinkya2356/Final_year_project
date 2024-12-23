@@ -39,13 +39,14 @@ interface FetchWorkersParams {
 
 export const fetchWorkers = createAsyncThunk<FetchWorkersParams, { rejectValue: string }>(
     'admin/fetchWorkers',
-    async ({ name, reg_no, page, limit, recentlyJoined }, { rejectWithValue }) => {
+    async ({ name, reg_no, page, limit, user_role, recentlyJoined }, { rejectWithValue }) => {
         try {
             let url = `/workers?`;
             if (name) url += `name=${name}&`;
             if (reg_no) url += `reg_no=${reg_no}&`;
             if (page) url += `page=${page}&`;
             if (limit) url += `limit=${limit}&`;
+            if (user_role) url += `user_role=${user_role}&`;
             if (recentlyJoined) url += `sort_by=created_at&sort_order=desc`;
             const response = await axiosInstance.get(url);
             return response.data;
@@ -217,6 +218,26 @@ export const deleteMeter = createAsyncThunk('admin/deleteMeter', async (id, { re
     }
 })
 
+export const sendEmail = createAsyncThunk('admin/sendEmail', async (list, { rejectWithValue }) => {
+    try {
+        const receipant_list = new FormData();
+        receipant_list.append('receipant_list', list);
+        const response = await axiosInstance.post(`/send_email`, receipant_list, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        if (error.response && error.response.data) {
+            return rejectWithValue(error.response.data.error);
+        } else {
+            return rejectWithValue(error.message);
+        }
+    }
+})
+
+
 const adminSlice = createSlice({
     name: 'admin',
     initialState,
@@ -363,6 +384,17 @@ const adminSlice = createSlice({
                 state.meta = action.payload.meta;
             })
             .addCase(deleteMeter.rejected, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(sendEmail.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(sendEmail.fulfilled, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+            })
+            .addCase(sendEmail.rejected, (state, action: PayloadAction<any>) => {
                 state.loading = false;
                 state.error = action.payload;
             })
