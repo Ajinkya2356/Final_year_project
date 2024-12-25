@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { checkMeter, createInspection, getMeters, resetInspectionStatus, changeCapture, changeMasterImage, changeDiff } from '../slices/inspectionSlice';
+import { checkMeter, createInspection, getMeters, resetInspectionStatus, changeCapture, changeMasterImage, changeDiff, resetod } from '../slices/inspectionSlice';
 import useErrorNotifier from '../hooks/useErrorNotifier';
+import { set } from 'react-datepicker/dist/date_utils';
 
 enum InspectionStatus {
     pass = 'pass',
@@ -17,7 +18,8 @@ interface Inspection {
 
 const Checkpoints: React.FC = () => {
     const dispatch = useDispatch();
-    const { meters, loading, checkLoading, inspectionStatus, capturedImage, masterImage, diffImage } = useSelector((state) => state.inspection);
+    const { meters, loading, checkLoading, inspectionStatus, capturedImage, masterImage, diffImage, od } = useSelector((state) => state.inspection);
+    const [operatorInput, setOperatorInput] = useState('');
     const [inspectionForm, setInspectionForm] = useState<Inspection>({
         serial_no: '',
         status: '',
@@ -39,6 +41,7 @@ const Checkpoints: React.FC = () => {
     const retry = () => {
         dispatch(changeCapture())
         dispatch(changeDiff())
+        dispatch(resetod())
         setInspectionForm({
             serial_no: inspectionForm.serial_no,
             status: '',
@@ -59,6 +62,7 @@ const Checkpoints: React.FC = () => {
     const handleContinue = () => {
         dispatch(changeCapture());
         dispatch(changeDiff())
+        dispatch(resetod())
         setInspectionForm(prev => ({
             ...prev,
             serial_no: '',
@@ -70,6 +74,7 @@ const Checkpoints: React.FC = () => {
     const handleSubmit = () => {
         dispatch(changeCapture());
         dispatch(changeDiff())
+        dispatch(resetod())
         setInspectionForm({
             serial_no: '',
             status: '',
@@ -94,6 +99,16 @@ const Checkpoints: React.FC = () => {
         });
     };
 
+    const handleOperatorInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setOperatorInput(e.target.value);
+        if (od && inspectionStatus) {
+            dispatch(createInspection({
+                ...inspectionForm,
+                status: e.target.value === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
+            }));
+        }
+    };
+
     useEffect(() => {
         dispatch(getMeters());
     }, [dispatch]);
@@ -103,13 +118,15 @@ const Checkpoints: React.FC = () => {
                 ...prev,
                 status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail
             }));
-            // Move createInspection dispatch here if needed
-            dispatch(createInspection({
-                ...inspectionForm,
-                status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
-            }));
+            setOperatorInput(inspectionStatus);
+            if (!od) {
+                dispatch(createInspection({
+                    ...inspectionForm,
+                    status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
+                }));
+            }
         }
-    }, [inspectionStatus]);
+    }, [inspectionStatus, od]);
     console.log(inspectionForm)
 
     useErrorNotifier({ stateName: 'inspection' });
@@ -190,6 +207,25 @@ const Checkpoints: React.FC = () => {
                                 placeholder="Enter Client Name"
                                 required
                             />
+                            {
+                                od === true && (
+                                    <>
+                                        <label htmlFor="od" className="flex justify-start text-white text-md">Operator</label>
+                                        <select
+                                            id="od"
+                                            name="operatorInput"
+                                            value={operatorInput}
+                                            onChange={handleOperatorInput}
+                                            className="p-2 rounded-md text-white"
+                                            required
+                                        >
+                                            <option value="" disabled>Select Status</option>
+                                            <option value="pass" selected={inspectionStatus === 'pass'}>Pass</option>
+                                            <option value="fail" selected={inspectionStatus === 'fail'}>Fail</option>
+                                        </select>
+                                    </>
+                                )
+                            }
                         </div>
                         <div className='flex justify-between'>
                             <button

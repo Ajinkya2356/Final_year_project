@@ -15,6 +15,7 @@ interface InspectionState {
     capturedImage: null;
     masterImage: null;
     diffImage: null;
+    od: boolean;
     meta: {
         page: number;
         total: number;
@@ -35,6 +36,7 @@ const initialState: InspectionState = {
     capturedImage: null,
     masterImage: null,
     diffImage: null,
+    od: false,
     meta: {
         page: 1,
         total: 0,
@@ -173,6 +175,9 @@ const inspectionSlice = createSlice({
         },
         changeDiff(state, action) {
             state.diffImage = action.payload ? action.payload : null;
+        },
+        resetod(state) {
+            state.od = false;
         }
     },
     extraReducers: (builder) => {
@@ -223,6 +228,7 @@ const inspectionSlice = createSlice({
                 state.inspectionStatus = action.payload.res;
                 state.capturedImage = action.payload.image;
                 state.diffImage = action.payload.diff;
+                state.od = action.payload.od;
             })
             .addCase(checkMeter.rejected, (state, action: PayloadAction<any>) => {
                 state.checkLoading = false;
@@ -255,5 +261,5 @@ const inspectionSlice = createSlice({
     },
 });
 
-export const { resetInspectionStatus, clearErrors, changeCapture, changeMasterImage,changeDiff } = inspectionSlice.actions;
+export const { resetInspectionStatus, clearErrors, changeCapture, changeMasterImage, changeDiff,resetod } = inspectionSlice.actions;
 export default inspectionSlice.reducer;

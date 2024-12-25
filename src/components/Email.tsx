@@ -107,6 +107,9 @@ const Email = () => {
                         onChange={(e) => setCustomEmail(e.target.value)}
                         placeholder="Add external email"
                         className="bg-gray-700 rounded text-white"
+                        InputProps={{
+                            style: { color: 'white' },
+                        }}
                         onKeyPress={(e) => e.key === 'Enter' && handleAddCustomEmail()}
                     />
                     <Button
