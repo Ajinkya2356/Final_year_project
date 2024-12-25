@@ -31,7 +31,7 @@ const Login: React.FC = () => {
         <div className="flex min-h-screen flex-col justify-center items-center bg-gray-900">
             <div className="sm:mx-auto sm:w-full sm:max-w-sm ">
                 <h2 className="mt-5 text-center text-2xl font-bold leading-9 tracking-tight text-white">
-                    Sign in to your account
+                    Login 
                 </h2>
             </div>
 
@@ -39,7 +39,7 @@ const Login: React.FC = () => {
                 <form onSubmit={handleSubmit} method="POST" className="space-y-6">
                     <div>
                         <label htmlFor="worker_id" className="block text-sm font-medium leading-6 text-white text-left">
-                            Worker ID
+                            Employee ID
                         </label>
                         <div className="mt-2">
                             <input

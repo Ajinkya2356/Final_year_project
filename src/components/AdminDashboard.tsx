@@ -5,6 +5,7 @@ import AdminSideBar from './AdminSideBar';
 import InspectionCrud from './InspectionCrud';
 import RoutineCrud from './RoutineCrud';
 import useErrorNotifier from '../hooks/useErrorNotifier';
+import Email from './Email';
 
 const AdminDashboard: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<string>('WorkerCrud');
@@ -21,6 +22,8 @@ const AdminDashboard: React.FC = () => {
         return <InspectionCrud tab={'get'} />;
       case 'RoutineCrud':
         return <RoutineCrud tab={'get'} />;
+      case 'Email':
+        return <Email/>
       default:
         return <WorkerCrud tab={'get'} />;
     }

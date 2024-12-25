@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axiosInstance from '../api/axiosInstance';
+import axios from 'axios';
 
 interface InspectionState {
     inspections: Array<any>;
@@ -11,6 +12,10 @@ interface InspectionState {
     loading: boolean;
     inspectionStatus: string | null;
     checkLoading: boolean;
+    capturedImage: null;
+    masterImage: null;
+    diffImage: null;
+    od: boolean;
     meta: {
         page: number;
         total: number;
@@ -28,6 +33,10 @@ const initialState: InspectionState = {
     loading: false,
     inspectionStatus: null,
     checkLoading: false,
+    capturedImage: null,
+    masterImage: null,
+    diffImage: null,
+    od: false,
     meta: {
         page: 1,
         total: 0,
@@ -98,16 +107,13 @@ export const getMeters = createAsyncThunk(
 
 export const checkMeter = createAsyncThunk(
     'inspections/checkMeter',
-    async ({ image, master }, { rejectWithValue }) => {
+    async (form, { rejectWithValue }) => {
         try {
-            const form = new FormData();
-            form.append("image", image)
-            form.append("master", master)
-            const response = await axiosInstance.post('/check', form, {
+            const response = await axios.post('http://localhost:3000/capture', form, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
-            });
+            })
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data) {
@@ -160,6 +166,18 @@ const inspectionSlice = createSlice({
         },
         clearErrors(state) {
             state.error = null;
+        },
+        changeCapture(state) {
+            state.capturedImage = null;
+        },
+        changeMasterImage(state, action) {
+            state.masterImage = action.payload ? action.payload : null;
+        },
+        changeDiff(state, action) {
+            state.diffImage = action.payload ? action.payload : null;
+        },
+        resetod(state) {
+            state.od = false;
         }
     },
     extraReducers: (builder) => {
@@ -207,7 +225,10 @@ const inspectionSlice = createSlice({
             })
             .addCase(checkMeter.fulfilled, (state, action: PayloadAction<any>) => {
                 state.checkLoading = false;
-                state.inspectionStatus = action.payload;
+                state.inspectionStatus = action.payload.res;
+                state.capturedImage = action.payload.image;
+                state.diffImage = action.payload.diff;
+                state.od = action.payload.od;
             })
             .addCase(checkMeter.rejected, (state, action: PayloadAction<any>) => {
                 state.checkLoading = false;
@@ -240,5 +261,5 @@ const inspectionSlice = createSlice({
     },
 });
 
-export const { resetInspectionStatus, clearErrors } = inspectionSlice.actions;
+export const { resetInspectionStatus, clearErrors, changeCapture, changeMasterImage, changeDiff,resetod } = inspectionSlice.actions;
 export default inspectionSlice.reducer;

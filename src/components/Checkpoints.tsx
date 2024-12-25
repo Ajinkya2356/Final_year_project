@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { checkMeter, createInspection, getMeters, resetInspectionStatus } from '../slices/inspectionSlice';
+import { checkMeter, createInspection, getMeters, resetInspectionStatus, changeCapture, changeMasterImage, changeDiff, resetod } from '../slices/inspectionSlice';
 import useErrorNotifier from '../hooks/useErrorNotifier';
+import { set } from 'react-datepicker/dist/date_utils';
 
 enum InspectionStatus {
     pass = 'pass',
@@ -18,53 +18,32 @@ interface Inspection {
 
 const Checkpoints: React.FC = () => {
     const dispatch = useDispatch();
-    const { meters, loading, checkLoading, inspectionStatus } = useSelector((state) => state.inspection);
-    const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    const { meters, loading, checkLoading, inspectionStatus, capturedImage, masterImage, diffImage, od } = useSelector((state) => state.inspection);
+    const [operatorInput, setOperatorInput] = useState('');
     const [inspectionForm, setInspectionForm] = useState<Inspection>({
         serial_no: '',
         status: '',
         meter_id: '',
         client: ''
     });
-    const videoRef = useRef<HTMLImageElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [masterImage, setMasterImage] = useState('');
-    const navigate = useNavigate();
-
-    const convertUrlToFile = (imageSrc: string) => {
-        const byteString = atob(imageSrc.split(',')[1]);
-        const mimeString = imageSrc.split(',')[0].split(':')[1].split(';')[0];
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i++) {
-            ia[i] = byteString.charCodeAt(i);
-        }
-        const blob = new Blob([ab], { type: mimeString });
-        return new File([blob], 'captured_image.jpg', { type: mimeString });
-    };
-
+    const masterRef = useRef<HTMLImageElement>(null);
+    const captureRef = useRef<HTMLButtonElement>(null);
     const capture = () => {
-        if (videoRef.current && canvasRef.current) {
-            const context = canvasRef.current.getContext('2d');
-            if (context) {
-                context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-                canvasRef.current.toBlob((blob) => {
-                    if (blob && masterImage) {
-                        const file1 = new File([blob], 'captured_image.jpg', { type: 'image/jpeg' });
-                        const file2 = new File([blob], 'master_image.jpg', { type: 'image/jpeg' });
-                        dispatch(checkMeter({ image: file1, master: file2 }));
-                    }
-                    const imageSrc = URL.createObjectURL(blob);
-                    setCapturedImage(imageSrc);
-                }, 'image/jpeg');
-            }
-        }
+        const check = new FormData();
+        check.append('master', masterImage);
+        check.append('serial_no', inspectionForm.serial_no);
+        const model_type = meters.find((meter: any) => meter.id === inspectionForm.meter_id).model;
+        check.append('model_type', model_type);
+        dispatch(checkMeter(check));
     };
+
 
     const retry = () => {
-        setCapturedImage(null);
+        dispatch(changeCapture())
+        dispatch(changeDiff())
+        dispatch(resetod())
         setInspectionForm({
-            serial_no: '',
+            serial_no: inspectionForm.serial_no,
             status: '',
             meter_id: inspectionForm.meter_id,
             client: inspectionForm.client
@@ -81,27 +60,28 @@ const Checkpoints: React.FC = () => {
     };
 
     const handleContinue = () => {
-        dispatch(createInspection(inspectionForm));
-        setCapturedImage(null);
-        setInspectionForm({
+        dispatch(changeCapture());
+        dispatch(changeDiff())
+        dispatch(resetod())
+        setInspectionForm(prev => ({
+            ...prev,
             serial_no: '',
             status: '',
-            meter_id: inspectionForm.meter_id,
-            client: inspectionForm.client
-        });
+        }));
         dispatch(resetInspectionStatus());
     };
 
     const handleSubmit = () => {
-        dispatch(createInspection(inspectionForm));
-        setCapturedImage(null);
+        dispatch(changeCapture());
+        dispatch(changeDiff())
+        dispatch(resetod())
         setInspectionForm({
             serial_no: '',
             status: '',
             meter_id: '',
             client: ''
         });
-        setMasterImage('');
+        dispatch(changeMasterImage());
         dispatch(resetInspectionStatus());
     };
 
@@ -110,7 +90,7 @@ const Checkpoints: React.FC = () => {
         if (name === 'meter_id') {
             const selectedMeter = meters.find((meter: any) => meter.id === value);
             if (selectedMeter) {
-                setMasterImage(selectedMeter.image);
+                dispatch(changeMasterImage(selectedMeter.image))
             }
         }
         setInspectionForm({
@@ -119,64 +99,78 @@ const Checkpoints: React.FC = () => {
         });
     };
 
+    const handleOperatorInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setOperatorInput(e.target.value);
+        if (od && inspectionStatus) {
+            dispatch(createInspection({
+                ...inspectionForm,
+                status: e.target.value === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
+            }));
+        }
+    };
+
     useEffect(() => {
         dispatch(getMeters());
     }, [dispatch]);
-
     useEffect(() => {
-        if (inspectionStatus) {
-            setInspectionForm((prevForm) => ({
-                ...prevForm,
-                status: inspectionStatus === 'Pass' ? InspectionStatus.pass : InspectionStatus.fail,
+        if (inspectionStatus === 'pass' || inspectionStatus === 'fail') {
+            setInspectionForm(prev => ({
+                ...prev,
+                status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail
             }));
+            setOperatorInput(inspectionStatus);
+            if (!od) {
+                dispatch(createInspection({
+                    ...inspectionForm,
+                    status: inspectionStatus === 'pass' ? InspectionStatus.pass : InspectionStatus.fail,
+                }));
+            }
         }
-    }, [inspectionStatus]);
+    }, [inspectionStatus, od]);
+    console.log(inspectionForm)
 
     useErrorNotifier({ stateName: 'inspection' });
 
     return (
         <div className="p-4 text-center flex flex-col flex-1 w-full mt-20">
             <div className='flex items-center justify-between w-full'>
-                <div className="flex gap-20 w-5/2 p-5 bg-gray-800 rounded-md justify-between">
+                <div className="flex gap-5 w-5/2 p-5 bg-gray-800 rounded-md justify-between">
                     <div className="flex flex-col items-center w-1/2">
-                        <h4 className="text-lg mb-2">Preview Screen</h4>
+                        <h4 className="text-lg mb-2">Master Image</h4>
+                        <img ref={masterRef} src={masterImage} alt="Master Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
+                    </div>
+                    <div className="flex flex-col items-center w-1/2">
+                        <h4 className="text-lg mb-2">Captured Image</h4>
                         {capturedImage ? (
                             <img src={capturedImage} alt="Captured Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
                         ) : (
                             <img
-                                ref={videoRef}
+                                ref={captureRef}
                                 src='http://localhost:3000/video_feed'
                                 alt="Live Feed"
                                 crossOrigin='anonymous'
                                 className="h-96 w-96 mb-4 border border-gray-300 rounded-lg"
                             />
                         )}
-                        <canvas ref={canvasRef} width={640} height={480} style={{ display: 'none' }}></canvas>
                     </div>
-                    <div className="flex flex-col items-center w-1/2">
-                        <h4 className="text-lg mb-2">Master Image</h4>
-                        <img src={masterImage} alt="Master Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
-                    </div>
+                    {
+                        diffImage && (
+                            <div className="flex flex-col items-center w-1/2">
+                                <h4 className="text-lg mb-2">Faults</h4>
+                                <img src={diffImage} alt="Master Image" className="h-96 w-96 mb-4 border border-gray-300 rounded-lg" />
+                            </div>
+                        )
+                    }
                 </div>
                 <div className='flex flex-col gap-20 pt-3 pb-3 flex-1'>
                     <div className="flex flex-col gap-10 mx-5">
                         <div className='flex flex-col bg-gray-800 p-2 rounded-md gap-2'>
                             {inspectionStatus ? (
-                                <div className={`flex justify-center rounded-md ${inspectionStatus === 'Pass' ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-red-400 to-red-600'}`}>
+                                <div className={`flex justify-center rounded-md ${inspectionStatus === 'pass' ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-red-400 to-red-600'}`}>
                                     <p className={`text-semibold text-xl`}>{inspectionStatus.toUpperCase()}</p>
                                 </div>
                             ) : checkLoading ? (<p>Loading...</p>) : null}
-                            <label htmlFor="serialNumber" className="flex justify-start text-white text-md">Serial Number</label>
-                            <input
-                                id="serialNumber"
-                                type="text"
-                                name="serial_no"
-                                value={inspectionForm.serial_no}
-                                onChange={handleInputChange}
-                                className="p-2 rounded-md text-white"
-                                placeholder="Enter Serial Number"
-                                required
-                            />
+
                             <label htmlFor="meterType" className="flex justify-start text-white text-md">Meter</label>
                             <select
                                 id="meterType"
@@ -191,6 +185,17 @@ const Checkpoints: React.FC = () => {
                                     <option key={meter.id} value={meter.id}>{meter.model}</option>
                                 ))}
                             </select>
+                            <label htmlFor="serialNumber" className="flex justify-start text-white text-md">Serial Number</label>
+                            <input
+                                id="serialNumber"
+                                type="text"
+                                name="serial_no"
+                                value={inspectionForm.serial_no}
+                                onChange={handleInputChange}
+                                className="p-2 rounded-md text-white"
+                                placeholder="Enter Serial Number"
+                                required
+                            />
                             <label htmlFor="client" className="flex justify-start text-white text-md">Client</label>
                             <input
                                 id="client"
@@ -202,13 +207,41 @@ const Checkpoints: React.FC = () => {
                                 placeholder="Enter Client Name"
                                 required
                             />
+                            {
+                                od === true && (
+                                    <>
+                                        <label htmlFor="od" className="flex justify-start text-white text-md">Operator</label>
+                                        <select
+                                            id="od"
+                                            name="operatorInput"
+                                            value={operatorInput}
+                                            onChange={handleOperatorInput}
+                                            className="p-2 rounded-md text-white"
+                                            required
+                                        >
+                                            <option value="" disabled>Select Status</option>
+                                            <option value="pass" selected={inspectionStatus === 'pass'}>Pass</option>
+                                            <option value="fail" selected={inspectionStatus === 'fail'}>Fail</option>
+                                        </select>
+                                    </>
+                                )
+                            }
                         </div>
                         <div className='flex justify-between'>
                             <button
+                                type='submit'
                                 onClick={handleCaptureRetry}
-                                className={`bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300 w-full ${!capturedImage ? '' : 'bg-red-500 hover:bg-red-600'}`}
+                                disabled={checkLoading}
+                                className={`text-white py-2 px-4 rounded transition duration-300 w-full 
+                                    ${checkLoading
+                                        ? 'bg-gray-300 cursor-not-allowed'
+                                        : !capturedImage
+                                            ? 'bg-blue-500 hover:bg-blue-600'
+                                            : 'bg-red-500 hover:bg-red-600'
+                                    }`}
+
                             >
-                                {capturedImage ? 'Retry' : 'Capture'}
+                                {capturedImage ? 'Retry' : checkLoading ? 'Processing...' : 'Capture'}
                             </button>
                         </div>
                         <div className='flex justify-between gap-10'>
